@@ -254,7 +254,7 @@ function setManagers(){
     S.fb=fb;
     S.tasks.forEach(t=>{const i=old.indexOf(t.manager);if(i>=0&&S.managers[i])t.manager=S.managers[i]});save()}
 }
-function setKey(){const k=prompt('کلید API شرکت Anthropic (فقط در مرورگر شما ذخیره می‌شود)');if(k)localStorage.setItem('key',k)}
+function setKey(){const k=prompt('کلید Groq (فقط در مرورگر شما ذخیره می‌شود)');if(k)localStorage.setItem('key',k.trim())}
 
 /* ---------- Backup / Restore ---------- */
 function exportData(){
@@ -339,13 +339,12 @@ async function runAI(){
 قواعد تاریخ: اگر کاربر تاریخ شمسی صریح گفت (مثلاً ۲۰ آبان ۱۴۰۵) همان را به شکل YYYY-MM-DD با سال شمسی (مثل 1405-08-20) بنویس. اگر تاریخ نسبی گفت (فردا، پنجشنبه، هفته بعد) آن را از امروز حساب کن و میلادی YYYY-MM-DD بنویس. ساعت را فقط اگر کاربر گفت بنویس (۲۴ ساعته). اگر کاربر مهلت جدید نگفت، due خالی بگذار.
 اگر کاربر وضعیت خواست، actions خالی و پاسخ را در reply بده. بازخورد دادن به مدیر را با action از نوع feedback ثبت کن (نه تسک).`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{
-      'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:sys,messages:[{role:'user',content:text}]})});
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{
+      'content-type':'application/json','authorization':'Bearer '+key},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1000,messages:[{role:'system',content:sys},{role:'user',content:text}]})});
     const j=await r.json();
     if(j.error) throw new Error(j.error.message);
-    const out=JSON.parse(j.content[0].text.match(/\{[\s\S]*\}/)[0]);
+    const out=JSON.parse(j.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
     const res=(out.actions||[]).map(a=>
       a.type==='add'?addTask(a.manager,a.title,a.due,a.time):
       a.type==='close'?closeTask(a.id):
