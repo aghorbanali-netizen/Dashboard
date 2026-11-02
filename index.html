@@ -1,1 +1,457 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>داشبورد مدیران</title>
+<style>
+body{font-family:Tahoma,sans-serif;background:#f3f4f6;margin:0;padding:16px;color:#111}
+h1{margin:0 0 12px}h2{margin:0 0 8px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:12px}
+.card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 1px 3px #0002}
+.stat b{font-size:28px;display:block}
+.red{color:#c00}.green{color:#080}.orange{color:#d80}
+.task{border-bottom:1px solid #eee;padding:6px 0;font-size:14px}
+.task small{color:#666;display:block}
+.critical{background:#fee2e2;border:2px solid #dc2626;border-radius:8px;padding:8px;margin:6px 0;color:#7f1d1d}
+.critical small{color:#991b1b}
+.crit{display:inline-block;background:#dc2626;color:#fff;border-radius:6px;padding:1px 8px;font-size:12px;margin:2px 0}
+#crit .box{background:#fee2e2;border:2px solid #dc2626;border-radius:10px;padding:10px;margin-bottom:12px;color:#7f1d1d}
+.tl{margin:4px 0 6px;padding-right:12px;border-right:2px solid #bfdbfe;font-size:13px;color:#333}
+.tl div{margin:3px 0}.tl small{display:inline;color:#2563eb}
+button{cursor:pointer;border:0;border-radius:6px;padding:4px 8px;background:#2563eb;color:#fff;margin:2px}
+button.g{background:#16a34a}button.x{background:#999}button.p{background:#7c3aed}button.r{background:#dc2626}
+input,select,textarea{padding:6px;border:1px solid #ccc;border-radius:6px;font-family:inherit}
+textarea{width:100%;box-sizing:border-box}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+#log{font-size:13px;color:#444;margin-top:6px;white-space:pre-wrap}
+.alert{background:#fff3cd;border-radius:8px;padding:8px;margin-bottom:8px;font-size:14px}
+.bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:#16a34a}
+.mic{font-size:20px;background:#dc2626}.mic.on{animation:p 1s infinite}@keyframes p{50%{opacity:.4}}
+.fb-مثبت{border-right:4px solid #16a34a;padding-right:8px}.fb-اصلاحی{border-right:4px solid #d97706;padding-right:8px}.fb-عادی{border-right:4px solid #94a3b8;padding-right:8px}
+nav{display:flex;gap:6px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<h1>📋 داشبورد مدیران زیرمجموعه</h1>
+<nav>
+  <button id="nav-tasks" onclick="setView('tasks')">📋 تسک‌ها</button>
+  <button id="nav-fb" onclick="setView('fb')">💬 بازخورد مدیران</button>
+</nav>
 
+<!-- ============ صفحه تسک‌ها ============ -->
+<div id="v-tasks">
+<div id="filter" class="row" style="margin-bottom:12px"></div>
+<div id="crit"></div>
+<div id="alerts"></div>
+<div class="grid" id="stats"></div>
+
+<div class="card" style="margin-bottom:12px">
+  <h2>🤖 دستور به هوش مصنوعی</h2>
+  <textarea id="cmd" rows="2" placeholder="مثلاً: برای دانشپور تسک گزارش فروش تا ۱۴۰۵/۰۸/۲۰ ساعت ۹ ثبت کن | تسک گزارش فروش بسته شد | برای زرگینی پیشرفت قرارداد رو ثبت کن ... | برای شیبانی بازخورد ثبت کن ... | وضعیت رو بگو"></textarea>
+  <div class="row">
+    <button class="mic" id="mic" onclick="toggleMic('cmd')">🎤</button>
+    <button onclick="runAI()">اجرا</button>
+    <button class="x" onclick="setKey()">تنظیم کلید API</button>
+    <button class="x" onclick="setManagers()">ویرایش نام مدیران</button>
+    <button class="x" onclick="exportICS()">📅 همه‌ی تسک‌ها در تقویم (.ics)</button>
+    <button class="x" onclick="exportData()">⬇️ پشتیبان JSON</button>
+    <button class="x" onclick="$('imp').click()">⬆️ بازیابی JSON</button>
+    <input id="imp" type="file" accept=".json,application/json" style="display:none" onchange="importData(this)">
+    <label style="font-size:13px"><input type="checkbox" id="auto" checked> افزودن خودکار به تقویم</label>
+    <label style="font-size:13px"><input type="checkbox" id="speak" checked> پاسخ صوتی</label>
+  </div>
+  <div id="log"></div>
+</div>
+
+<div class="card" style="margin-bottom:12px">
+  <h2>➕ تسک جدید (دستی)</h2>
+  <div class="row">
+    <select id="m"></select>
+    <input id="t" placeholder="عنوان تسک" size="30">
+    <input id="d" placeholder="مهلت شمسی: ۱۴۰۵/۰۸/۱۲" inputmode="numeric" size="20">
+    <input id="tm" type="time" title="ساعت (اختیاری)">
+    <button onclick="addManual()">ثبت</button>
+  </div>
+</div>
+
+<div class="grid" id="managers"></div>
+<div class="card" style="margin-top:12px"><h2>✅ بسته‌شده‌ها</h2><div id="closed"></div></div>
+</div>
+
+<!-- ============ صفحه بازخورد ============ -->
+<div id="v-fb" style="display:none">
+  <div class="row" id="fbtabs" style="margin-bottom:12px"></div>
+  <div class="card" style="margin-bottom:12px">
+    <h2 id="fbtitle"></h2>
+    <textarea id="fbtext" rows="3" placeholder="بازخورد را بنویسید، یا 🎤 بزنید و بگویید (پس از پایان صحبت خودکار ثبت می‌شود)"></textarea>
+    <div class="row">
+      <select id="fbtype"><option>عادی</option><option>مثبت</option><option>اصلاحی</option></select>
+      <button class="mic" id="fbmic" onclick="toggleMic('fbtext')">🎤</button>
+      <button onclick="saveFBui()">ثبت بازخورد</button>
+    </div>
+    <div id="fblog" style="font-size:13px;color:#444;margin-top:6px"></div>
+  </div>
+  <div class="card"><h2>تاریخچه‌ی بازخوردها</h2><div id="fblist"></div></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;');
+
+/* ---------- State ---------- */
+let S=JSON.parse(localStorage.getItem('mgr')||'null')||{managers:['دانشپور','خانبابایی','زرگینی','شیبانی'],tasks:[],nid:1,lastRemind:{}};
+S.tasks.forEach(t=>{t.log=t.log||[]});
+S.fb=S.fb||{};S.fbid=S.fbid||1;S.lastRemind=S.lastRemind||{};
+let F=localStorage.getItem('flt')||'';
+let FM=localStorage.getItem('fm')||'';
+let V=(location.hash==='#fb')?'fb':'tasks';
+const save=()=>{localStorage.setItem('mgr',JSON.stringify(S));render()};
+function setF(i){F=i<0?'':S.managers[i];localStorage.setItem('flt',F);render()}
+function setFM(i){FM=S.managers[i];localStorage.setItem('fm',FM);render()}
+function setView(v){V=v;location.hash=v==='fb'?'fb':'';render()}
+function findMgr(name){name=String(name||'');return S.managers.find(x=>x===name)||S.managers.find(x=>x.includes(name)||name.includes(x))}
+
+/* ---------- Dates (Shamsi) ---------- */
+const PD='۰۱۲۳۴۵۶۷۸۹',AD='٠١٢٣٤٥٦٧٨٩';
+const pn=s=>String(s).split('').map(c=>{const i=PD.indexOf(c);if(i>=0)return i;const j=AD.indexOf(c);return j>=0?j:c}).join('');
+const fa=s=>String(s).split('').map(c=>'0123456789'.indexOf(c)>=0?PD[+c]:c).join('');
+const p2=n=>String(n).padStart(2,'0');
+const div=(a,b)=>Math.trunc(a/b);
+function g2j(gy,gm,gd){
+  const gdm=[0,31,59,90,120,151,181,212,243,273,304,334];
+  let jy;if(gy>1600){jy=979;gy-=1600}else{jy=0;gy-=621}
+  const gy2=gm>2?gy+1:gy;
+  let days=365*gy+div(gy2+3,4)-div(gy2+99,100)+div(gy2+399,400)-80+gd+gdm[gm-1];
+  jy+=33*div(days,12053);days%=12053;
+  jy+=4*div(days,1461);days%=1461;
+  if(days>365){jy+=div(days-1,365);days=(days-1)%365}
+  const jm=days<186?1+div(days,31):7+div(days-186,30);
+  const jd=1+(days<186?days%31:(days-186)%30);
+  return [jy,jm,jd];
+}
+function j2g(jy,jm,jd){
+  let gy;if(jy>979){gy=1600;jy-=979}else{gy=621}
+  let days=365*jy+div(jy,33)*8+div((jy%33)+3,4)+78+jd+(jm<7?(jm-1)*31:(jm-7)*30+186);
+  gy+=400*div(days,146097);days%=146097;
+  if(days>36524){days--;gy+=100*div(days,36524);days%=36524;if(days>=365)days++}
+  gy+=4*div(days,1461);days%=1461;
+  if(days>365){gy+=div(days-1,365);days=(days-1)%365}
+  let gd=days+1;
+  const sa=[0,31,((gy%4===0&&gy%100!==0)||gy%400===0)?29:28,31,30,31,30,31,31,30,31,30,31];
+  let gm;for(gm=0;gm<13&&gd>sa[gm];gm++)gd-=sa[gm];
+  return [gy,gm,gd];
+}
+const dstr=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+const today=()=>dstr(new Date());
+const isDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'');
+function fd(s){if(!isDate(s))return '—';const a=s.split('-').map(Number),j=g2j(a[0],a[1],a[2]);return fa(j[0]+'/'+p2(j[1])+'/'+p2(j[2]))}
+function parseDate(s){ // شمسی یا میلادی → YYYY-MM-DD ؛ '' برای خالی ؛ null برای نامعتبر
+  s=pn(s||'').trim();if(!s)return '';
+  const p=s.split('/').join('-').split('.').join('-').split('-').map(Number);
+  if(p.length!==3||p.some(isNaN))return null;
+  let g;
+  if(p[0]<1700){if(p[1]<1||p[1]>12||p[2]<1||p[2]>31)return null;g=j2g(p[0],p[1],p[2])}else g=p;
+  const iso=g[0]+'-'+p2(g[1])+'-'+p2(g[2]);
+  const d=new Date(iso+'T00:00:00Z');
+  if(isNaN(d)||d.toISOString().slice(0,10)!==iso)return null;
+  return iso;
+}
+function parseTime(s){
+  s=pn(s||'').trim();if(!s)return '';
+  const p=s.split(':');if(p.length!==2)return null;
+  const h=+p[0],m=+p[1];if(isNaN(h)||isNaN(m)||h<0||h>23||m<0||m>59)return null;
+  return p2(h)+':'+p2(m);
+}
+function parseDT(s){ // "۱۴۰۵/۰۸/۲۰ 14:30"
+  const p=pn(s||'').trim().split(' ').filter(Boolean);
+  if(!p.length)return {due:'',time:''};
+  const due=parseDate(p[0]);if(due===null)return null;
+  const time=parseTime(p[1]||'');if(time===null)return null;
+  return {due,time};
+}
+const showDue=t=>t.due?fd(t.due)+(t.time?' ساعت '+fa(t.time):''):'—';
+const dueTs=t=>new Date(t.due+'T'+(t.time||'23:59')+':00');
+const overdue=t=>t.status==='open'&&t.due&&dueTs(t)<new Date();
+
+/* ---------- Tasks ---------- */
+function addTask(manager,title,dueRaw,timeRaw){
+  const m=findMgr(manager);
+  if(!m) return '❌ مدیر پیدا نشد: '+manager;
+  const due=parseDate(dueRaw);if(due===null) return '❌ تاریخ نامعتبر: '+dueRaw;
+  let time=parseTime(timeRaw);if(time===null)time='';
+  if(!due)time='';
+  const nt={id:S.nid++,manager:m,title,due,time,status:'open',created:today(),log:[]};
+  nt.log.push({date:today(),note:'تسک ایجاد شد'+(due?' (مهلت: '+showDue(nt)+')':'')});
+  S.tasks.push(nt);
+  save();
+  if(due&&$('auto').checked)setTimeout(()=>downloadICS([nt],'task-'+nt.id+'.ics'),300);
+  return '✅ تسک «'+title+'» برای '+m+' ثبت شد';
+}
+function closeTask(id){
+  const t=S.tasks.find(x=>x.id==id);
+  if(!t) return '❌ تسک پیدا نشد';
+  t.status='closed';t.closed=today();
+  t.log.push({date:today(),note:'تسک بسته شد'});
+  save();
+  if(t.due&&$('auto').checked)setTimeout(()=>downloadICS([t],'task-'+t.id+'.ics'),300);
+  return '✅ تسک «'+t.title+'» بسته شد';
+}
+function addProgress(id,note,dueRaw,timeRaw){
+  const t=S.tasks.find(x=>x.id==id);
+  if(!t) return '❌ تسک پیدا نشد';
+  const e={date:today(),note:note||''};
+  let warn='',changed=false,becameCrit=false;
+  const nd=parseDate(dueRaw);
+  if(nd===null)warn='\n⚠️ تاریخ نامعتبر بود و مهلت تغییر نکرد';
+  let nt=parseTime(timeRaw);if(nt===null)nt='';
+  if(nd){
+    const wasOver=overdue(t);
+    const newTime=timeRaw?nt:(t.time||'');
+    if(nd!==t.due||newTime!==(t.time||'')){
+      const oldTxt=showDue(t);
+      t.due=nd;t.time=newTime;changed=true;
+      e.due='مهلت از '+oldTxt+' به '+showDue(t)+' تغییر کرد';
+      if(wasOver){
+        t.ext=(t.ext||0)+1;
+        if(!t.crit)becameCrit=true;
+        t.crit=true;
+        e.crit=true;
+        e.due+=' — 🔴 بعد از سررسید';
+      }
+    }
+  }
+  t.log.push(e);
+  save();
+  if(changed&&$('auto').checked)setTimeout(()=>downloadICS([t],'task-'+t.id+'.ics'),300);
+  return '📝 پیشرفت «'+t.title+'» ثبت شد'+(changed?' و مهلت به '+showDue(t)+' رفت':'')
+    +(e.crit?'\n🔴 بحرانی: این تسک بعد از سررسید تمدید شد':'')+warn;
+}
+function progressPrompt(id){
+  const t=S.tasks.find(x=>x.id==id);
+  if(!t) return;
+  const note=prompt('وضعیت «'+t.title+'» را بنویسید (چه اتفاقی افتاد، چه پیشرفتی بود، چه کارهایی مانده):');
+  if(!note||!note.trim()) return;
+  const cur=t.due?fd(t.due)+(t.time?' '+t.time:''):'';
+  const nd=prompt('مهلت جدید (شمسی مثل ۱۴۰۵/۰۸/۲۰ و اختیاری ساعت: ۱۴۰۵/۰۸/۲۰ 14:30). اگر تغییر نمی‌کند همان را بگذارید:',cur);
+  let r='',tm='';
+  if(nd&&nd.trim()){const x=parseDT(nd);if(x){r=x.due;tm=x.time}else r='invalid'}
+  const msg=addProgress(id,note.trim(),r,tm);
+  $('log').textContent=msg;
+  if(msg.includes('🔴'))say('تسک بحرانی شد');
+}
+function addManual(){
+  if(!$('t').value) return;
+  $('log').textContent=addTask($('m').value,$('t').value,$('d').value,$('tm').value);
+  $('t').value='';$('d').value='';$('tm').value='';
+}
+function setManagers(){
+  const v=prompt('نام ۴ مدیر را با کاما جدا کنید',S.managers.join(','));
+  if(v){const old=S.managers;S.managers=v.split(',').map(x=>x.trim()).filter(Boolean);
+    const fb={};
+    old.forEach((o,i)=>{const n=S.managers[i];if(n&&S.fb[o])fb[n]=S.fb[o]});
+    S.managers.forEach(n=>{if(!fb[n]&&S.fb[n])fb[n]=S.fb[n]});
+    S.fb=fb;
+    S.tasks.forEach(t=>{const i=old.indexOf(t.manager);if(i>=0&&S.managers[i])t.manager=S.managers[i]});save()}
+}
+function setKey(){const k=prompt('کلید API شرکت Anthropic (فقط در مرورگر شما ذخیره می‌شود)');if(k)localStorage.setItem('key',k)}
+
+/* ---------- Backup / Restore ---------- */
+function exportData(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));
+  a.download='backup-'+today()+'.json';a.click();
+}
+function importData(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||!Array.isArray(d.managers)||!Array.isArray(d.tasks))throw new Error('ساختار فایل درست نیست');
+      if(!confirm('داده‌های فعلی با این فایل جایگزین می‌شود ('+d.tasks.length+' تسک). ادامه؟'))return;
+      d.tasks.forEach(t=>{t.log=t.log||[]});
+      d.fb=d.fb||{};d.fbid=d.fbid||1;d.lastRemind=d.lastRemind||{};
+      d.nid=d.nid||(Math.max(0,...d.tasks.map(t=>t.id))+1);
+      S=d;save();$('log').textContent='✅ بازیابی انجام شد';
+    }catch(e){alert('خطا در بازیابی: '+e.message)}
+    inp.value='';
+  };
+  r.readAsText(f);
+}
+
+/* ---------- Feedback ---------- */
+function addFB(manager,text,type){
+  const m=findMgr(manager);
+  if(!m)return '❌ مدیر پیدا نشد: '+manager;
+  if(!text||!String(text).trim())return '❌ متن بازخورد خالی است';
+  if(!['عادی','مثبت','اصلاحی'].includes(type))type='عادی';
+  (S.fb[m]=S.fb[m]||[]).push({id:S.fbid++,date:today(),type,text:String(text).trim()});
+  save();
+  return '💬 بازخورد برای '+m+' ثبت شد';
+}
+function saveFBui(){
+  const tx=$('fbtext').value.trim();if(!tx)return;
+  $('fblog').textContent=addFB(FM,tx,$('fbtype').value);
+  $('fbtext').value='';
+}
+function delFB(id){
+  if(!confirm('این بازخورد حذف شود؟'))return;
+  S.fb[FM]=(S.fb[FM]||[]).filter(f=>f.id!==id);save();
+}
+
+/* ---------- Voice ---------- */
+let rec=null,recTarget='cmd';
+function toggleMic(target){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){$('log').textContent='مرورگر از ورودی صوتی پشتیبانی نمی‌کند (Chrome یا Edge استفاده کنید)';return}
+  if(rec){rec.stop();return}
+  recTarget=target;
+  const btn=target==='cmd'?$('mic'):$('fbmic'),out=target==='cmd'?$('log'):$('fblog');
+  rec=new SR();rec.lang='fa-IR';rec.interimResults=true;rec.continuous=false;
+  btn.classList.add('on');
+  rec.onresult=e=>{$(target).value=[...e.results].map(r=>r[0].transcript).join(' ')};
+  rec.onerror=e=>{const m={'not-allowed':'اجازه‌ی میکروفون داده نشده. صفحه را از آدرس https باز کنید و Microphone را Allow کنید (file:// و content:// پشتیبانی نمی‌شود).','service-not-allowed':'مرورگر اجازه‌ی تشخیص گفتار نمی‌دهد (معمولاً به‌خاطر file:// یا تنظیمات).','network':'تشخیص گفتار Chrome به اینترنت و دسترسی به سرویس گوگل نیاز دارد.','no-speech':'صدایی شنیده نشد، دوباره تلاش کنید.','audio-capture':'میکروفونی پیدا نشد.'};out.textContent='خطای میکروفون ('+e.error+'): '+(m[e.error]||'')};
+  rec.onend=()=>{rec=null;btn.classList.remove('on');
+    if(!$(target).value.trim())return;
+    if(target==='cmd')runAI();else saveFBui()};
+  rec.start();
+}
+function say(t){
+  if(!$('speak').checked||!t||!window.speechSynthesis)return;
+  const u=new SpeechSynthesisUtterance(t);u.lang='fa-IR';speechSynthesis.speak(u);
+}
+
+/* ---------- AI ---------- */
+async function runAI(){
+  const key=localStorage.getItem('key');
+  if(!key) return setKey();
+  const text=$('cmd').value.trim(); if(!text) return;
+  $('log').textContent='⏳ ...';
+  const open=S.tasks.filter(t=>t.status==='open').map(t=>{
+    const last=t.log[t.log.length-1];
+    return '#'+t.id+' '+t.manager+': '+t.title+' (مهلت '+(t.due?t.due+(t.time?' '+t.time:''):'-')+')'+(t.crit?' [بحرانی]':'')+(last?' | آخرین وضعیت: '+last.note:'')}).join('\n');
+  const wd=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'][new Date().getDay()];
+  const sys='تو دستیار مدیریت تسک هستی. امروز '+wd+' '+today()+' میلادی است (شمسی: '+fd(today())+'). مدیران: '+S.managers.join('، ')+'.\nتسک‌های باز:\n'+(open||'(هیچ)')+`
+
+فقط JSON خالص برگردان با این شکل:
+{"actions":[{"type":"add","manager":"","title":"","due":"YYYY-MM-DD","time":"HH:MM یا خالی"},{"type":"close","id":number},{"type":"progress","id":number,"note":"وضعیت، پیشرفت‌ها و کارهای باقی‌مانده","due":"YYYY-MM-DD یا خالی","time":"HH:MM یا خالی"},{"type":"feedback","manager":"","text":"متن بازخورد","kind":"عادی یا مثبت یا اصلاحی"}],"reply":"پاسخ کوتاه فارسی"}
+قواعد تاریخ: اگر کاربر تاریخ شمسی صریح گفت (مثلاً ۲۰ آبان ۱۴۰۵) همان را به شکل YYYY-MM-DD با سال شمسی (مثل 1405-08-20) بنویس. اگر تاریخ نسبی گفت (فردا، پنجشنبه، هفته بعد) آن را از امروز حساب کن و میلادی YYYY-MM-DD بنویس. ساعت را فقط اگر کاربر گفت بنویس (۲۴ ساعته). اگر کاربر مهلت جدید نگفت، due خالی بگذار.
+اگر کاربر وضعیت خواست، actions خالی و پاسخ را در reply بده. بازخورد دادن به مدیر را با action از نوع feedback ثبت کن (نه تسک).`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{
+      'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:sys,messages:[{role:'user',content:text}]})});
+    const j=await r.json();
+    if(j.error) throw new Error(j.error.message);
+    const out=JSON.parse(j.content[0].text.match(/\{[\s\S]*\}/)[0]);
+    const res=(out.actions||[]).map(a=>
+      a.type==='add'?addTask(a.manager,a.title,a.due,a.time):
+      a.type==='close'?closeTask(a.id):
+      a.type==='progress'?addProgress(a.id,a.note,a.due,a.time):
+      a.type==='feedback'?addFB(a.manager,a.text,a.kind):'');
+    $('log').textContent=[...res,out.reply].filter(Boolean).join('\n');
+    say(out.reply);
+    if(res.some(x=>x.includes('🔴')))say('هشدار، تسک بحرانی');
+    $('cmd').value='';
+  }catch(e){$('log').textContent='خطا: '+e.message}
+}
+
+/* ---------- Calendar (.ics) ---------- */
+const CRLF=String.fromCharCode(13,10);
+const ymd=s=>s.split('-').join('');
+function nextDay(s){const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)}
+const loc=d=>d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+'T'+p2(d.getHours())+p2(d.getMinutes())+'00';
+function evTimes(t){
+  if(t.time){const s=new Date(t.due+'T'+t.time+':00'),e=new Date(+s+36e5);return {st:'DTSTART:'+loc(s),en:'DTEND:'+loc(e),timed:true}}
+  return {st:'DTSTART;VALUE=DATE:'+ymd(t.due),en:'DTEND;VALUE=DATE:'+ymd(nextDay(t.due)),timed:false};
+}
+function buildICS(tasks){
+  const now=new Date().toISOString().split('-').join('').split(':').join('').split('.')[0]+'Z';
+  const ev=tasks.filter(t=>t.due).map(t=>{
+    const closed=t.status==='closed',tt=evTimes(t);
+    const alarms=closed?[]:(tt.timed
+      ?['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:فردا مهلت تسک است','TRIGGER:-P1D','END:VALARM','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:نیم ساعت تا مهلت تسک','TRIGGER:-PT30M','END:VALARM']
+      :['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:فردا مهلت تسک است','TRIGGER:-PT15H','END:VALARM','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:امروز مهلت تسک است','TRIGGER:PT9H','END:VALARM']);
+    return ['BEGIN:VEVENT','UID:task-'+t.id+'@mgr-dashboard','DTSTAMP:'+now,'SEQUENCE:'+t.log.length,
+      tt.st,tt.en,'SUMMARY:'+(closed?'✔ ':'')+t.manager+': '+t.title,'STATUS:'+(closed?'CANCELLED':'CONFIRMED'),
+      ...alarms,'END:VEVENT'].join(CRLF)}).join(CRLF);
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//mgr-dashboard//FA',ev,'END:VCALENDAR'].join(CRLF);
+}
+function downloadICS(tasks,name){
+  if(!tasks.length)return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([buildICS(tasks)],{type:'text/calendar;charset=utf-8'}));
+  a.download=name;a.click();
+}
+const exportICS=()=>downloadICS(S.tasks,'all-tasks.ics');
+function gcal(t){
+  const tt=evTimes(t);
+  const dates=t.time?tt.st.slice(8)+'/'+tt.en.slice(6):ymd(t.due)+'/'+ymd(nextDay(t.due));
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(t.manager+': '+t.title)+'&dates='+dates;
+}
+
+/* ---------- Reminders ---------- */
+function remind(){
+  const tom=dstr(new Date(Date.now()+864e5));
+  const tl=S.tasks.filter(t=>t.status==='open'&&t.due&&t.due<=tom);
+  const al=$('alerts');al.innerHTML='';
+  tl.forEach(t=>{
+    const od=overdue(t);
+    if(!F||t.manager===F)al.innerHTML+='<div class="alert">'+(od?'🔴 مهلت گذشته':'🟡 مهلت تا فردا')+': «'+esc(t.title)+'» — '+esc(t.manager)+' ('+showDue(t)+') <button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button></div>';
+    if(S.lastRemind[t.id]!==today()&&'Notification' in window&&Notification.permission==='granted'){
+      new Notification('یادآوری تسک',{body:t.manager+': '+t.title});S.lastRemind[t.id]=today();
+      localStorage.setItem('mgr',JSON.stringify(S));
+    }
+  });
+}
+
+/* ---------- Render ---------- */
+const tlHTML=t=>t.log.length?'<div class="tl">'+t.log.map(e=>'<div><small>'+fd(e.date)+'</small> '+esc(e.note)+(e.due?' <span class="'+(e.crit?'red':'orange')+'">('+esc(e.due)+')</span>':'')+'</div>').join('')+'</div>':'';
+const badge=t=>t.crit?'<span class="crit">🔴 بحرانی — بعد از سررسید تمدید شد'+(t.ext>1?' ('+fa(t.ext)+' بار)':'')+'</span>':'';
+
+function taskHTML(t){
+  return '<div class="task '+(t.crit?'critical':overdue(t)?'red':'')+'">#'+t.id+' '+esc(t.title)+' '+badge(t)+'<small>ایجاد: '+fd(t.created)+' | مهلت: '+showDue(t)+'</small>'
+    +tlHTML(t)
+    +'<button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button><button class="g" onclick="closeTask('+t.id+')">بستن</button>'
+    +(t.due?'<a href="'+gcal(t)+'" target="_blank"><button class="x">📅 Google</button></a><button class="x" onclick="downloadICS([S.tasks.find(x=>x.id=='+t.id+')],\'task-'+t.id+'.ics\')">.ics</button>':'')+'</div>';
+}
+
+function render(){
+  if(!S.managers.includes(F))F='';
+  if(!S.managers.includes(FM))FM=S.managers[0]||'';
+  $('v-tasks').style.display=V==='tasks'?'':'none';
+  $('v-fb').style.display=V==='fb'?'':'none';
+  $('nav-tasks').className=V==='tasks'?'':'x';$('nav-fb').className=V==='fb'?'':'x';
+  /* tasks */
+  $('m').innerHTML=S.managers.map(m=>'<option>'+esc(m)+'</option>').join('');
+  $('filter').innerHTML=['',...S.managers].map((m,i)=>'<button class="'+(m===F?'':'x')+'" onclick="setF('+(i-1)+')">'+(esc(m)||'همه')+'</button>').join('');
+  const vis=S.tasks.filter(t=>!F||t.manager===F);
+  const open=vis.filter(t=>t.status==='open'),od=open.filter(overdue),cr=open.filter(t=>t.crit);
+  $('crit').innerHTML=cr.length?'<div class="box"><b>🔴 موارد بحرانی ('+fa(cr.length)+') — بعد از سررسید تمدید شده‌اند و هنوز باز هستند</b>'+cr.map(t=>'<div class="task">'+esc(t.manager)+': '+esc(t.title)+' — مهلت فعلی: '+showDue(t)+(t.ext>1?' ('+fa(t.ext)+' بار تمدید)':'')+' <button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button></div>').join('')+'</div>':'';
+  $('stats').innerHTML='<div class="card stat">باز<b class="orange">'+open.length+'</b></div>'
+   +'<div class="card stat">مهلت گذشته<b class="red">'+od.length+'</b></div>'
+   +'<div class="card stat">بحرانی<b class="red">'+cr.length+'</b></div>'
+   +'<div class="card stat">بسته‌شده<b class="green">'+(vis.length-open.length)+'</b></div>';
+  $('managers').innerHTML=S.managers.filter(m=>!F||m===F).map(m=>{
+    const ts=S.tasks.filter(t=>t.manager===m&&t.status==='open').sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
+    const all=S.tasks.filter(t=>t.manager===m),pct=all.length?Math.round(100*(all.length-ts.length)/all.length):0;
+    return '<div class="card"><h2>'+esc(m)+' — '+ts.length+' باز / <span class="red">'+ts.filter(overdue).length+' عقب‌افتاده</span>'+(ts.some(t=>t.crit)?' / <span class="crit">'+ts.filter(t=>t.crit).length+' بحرانی</span>':'')+'</h2><small>'+pct+'٪ انجام‌شده ('+(all.length-ts.length)+' از '+all.length+')</small><div class="bar"><i style="width:'+pct+'%"></i></div>'
+      +(ts.map(taskHTML).join('')||'<small>تسک بازی نیست</small>')+'</div>';
+  }).join('');
+  const done=vis.filter(t=>t.status==='closed').sort((a,b)=>(b.closed||'').localeCompare(a.closed||''));
+  $('closed').innerHTML=done.map(t=>'<div class="task">#'+t.id+' '+esc(t.manager)+': '+esc(t.title)+' '+badge(t)+'<small>ایجاد: '+fd(t.created)+' | مهلت: '+showDue(t)+' | خاتمه: '+fd(t.closed)+'</small>'+tlHTML(t)+'</div>').join('')||'<small>تسک بسته‌شده‌ای نیست</small>';
+  remind();
+  /* feedback */
+  $('fbtabs').innerHTML=S.managers.map((m,i)=>'<button class="'+(m===FM?'':'x')+'" onclick="setFM('+i+')">'+esc(m)+' ('+fa((S.fb[m]||[]).length)+')</button>').join('');
+  $('fbtitle').textContent='💬 ثبت بازخورد برای '+FM;
+  const fl=(S.fb[FM]||[]).slice().reverse();
+  $('fblist').innerHTML=fl.map(f=>'<div class="task fb-'+f.type+'"><small>'+fd(f.date)+' — '+esc(f.type)+'</small>'+esc(f.text)+' <button class="x" onclick="delFB('+f.id+')">حذف</button></div>').join('')||'<small>هنوز بازخوردی برای '+esc(FM)+' ثبت نشده</small>';
+}
+window.addEventListener('hashchange',()=>{V=location.hash==='#fb'?'fb':'tasks';render()});
+if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+render();setInterval(render,60000);
+</script>
+</body>
+</html>
