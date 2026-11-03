@@ -111,7 +111,6 @@ function setF(i){F=i<0?'':S.managers[i];localStorage.setItem('flt',F);render()}
 function setFM(i){FM=S.managers[i];localStorage.setItem('fm',FM);render()}
 function setView(v){V=v;location.hash=v==='fb'?'fb':'';render()}
 function findMgr(name){name=String(name||'');return S.managers.find(x=>x===name)||S.managers.find(x=>x.includes(name)||name.includes(x))}
-
 /* ---------- Dates (Shamsi) ---------- */
 const PD='۰۱۲۳۴۵۶۷۸۹',AD='٠١٢٣٤٥٦٧٨٩';
 const pn=s=>String(s).split('').map(c=>{const i=PD.indexOf(c);if(i>=0)return i;const j=AD.indexOf(c);return j>=0?j:c}).join('');
@@ -197,7 +196,7 @@ function closeTask(id){
   if(t.due&&$('auto').checked)setTimeout(()=>downloadICS([t],'task-'+t.id+'.ics'),300);
   return '✅ تسک «'+t.title+'» بسته شد';
 }
-function addProgress(id,note,dueRaw,timeRaw){
+function addProgress(id,note,dueRaw,timeRaw,pct){
   const t=S.tasks.find(x=>x.id==id);
   if(!t) return '❌ تسک پیدا نشد';
   const e={date:today(),note:note||''};
@@ -221,6 +220,7 @@ function addProgress(id,note,dueRaw,timeRaw){
       }
     }
   }
+  if(pct!==undefined&&pct!==null&&pct!==''&&!isNaN(+pct)){t.pct=Math.max(0,Math.min(100,Math.round(+pct)));e.pct=t.pct}
   t.log.push(e);
   save();
   if(changed&&$('auto').checked)setTimeout(()=>downloadICS([t],'task-'+t.id+'.ics'),300);
@@ -236,7 +236,8 @@ function progressPrompt(id){
   const nd=prompt('مهلت جدید (شمسی مثل ۱۴۰۵/۰۸/۲۰ و اختیاری ساعت: ۱۴۰۵/۰۸/۲۰ 14:30). اگر تغییر نمی‌کند همان را بگذارید:',cur);
   let r='',tm='';
   if(nd&&nd.trim()){const x=parseDT(nd);if(x){r=x.due;tm=x.time}else r='invalid'}
-  const msg=addProgress(id,note.trim(),r,tm);
+  const pc=prompt('درصد پیشرفت این تسک (۰ تا ۱۰۰، اختیاری):',t.pct||0);
+  const msg=addProgress(id,note.trim(),r,tm,pc?pn(pc):undefined);
   $('log').textContent=msg;
   if(msg.includes('🔴'))say('تسک بحرانی شد');
 }
@@ -254,8 +255,7 @@ function setManagers(){
     S.fb=fb;
     S.tasks.forEach(t=>{const i=old.indexOf(t.manager);if(i>=0&&S.managers[i])t.manager=S.managers[i]});save()}
 }
-function setKey(){const k=prompt('کلید Groq (فقط در مرورگر شما ذخیره می‌شود)');if(k)localStorage.setItem('key',k.trim())}
-
+function setKey(){const k=prompt('کلید Groq (فقط در مرورگر شما ذخیره می‌شود)');if(k)localStorage.setItem('key',k)}
 /* ---------- Backup / Restore ---------- */
 function exportData(){
   const a=document.createElement('a');
@@ -317,44 +317,60 @@ function toggleMic(target){
     if(target==='cmd')runAI();else saveFBui()};
   rec.start();
 }
+let recId=null;
+function taskMic(id){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){$('log').textContent='مرورگر از ورودی صوتی پشتیبانی نمی‌کند (Chrome یا Edge استفاده کنید)';return}
+  if(rec){rec.stop();return}
+  recId=id;let tr='';
+  rec=new SR();rec.lang='fa-IR';rec.interimResults=true;rec.continuous=false;
+  rec.onresult=e=>{tr=[...e.results].map(r=>r[0].transcript).join(' ');$('log').textContent='🎤 '+tr};
+  rec.onerror=e=>{$('log').textContent='خطای میکروفون ('+e.error+'): '+(e.error==='not-allowed'?'اجازه‌ی میکروفون داده نشده':e.error==='network'?'تشخیص گفتار Chrome به اینترنت و سرویس گوگل نیاز دارد':'')};
+  rec.onend=()=>{rec=null;recId=null;render();if(tr.trim())runAI(id,tr.trim())};
+  rec.start();render();
+}
 function say(t){
   if(!$('speak').checked||!t||!window.speechSynthesis)return;
   const u=new SpeechSynthesisUtterance(t);u.lang='fa-IR';speechSynthesis.speak(u);
 }
 
 /* ---------- AI ---------- */
-async function runAI(){
+async function runAI(fid,txt){
+  const text=(txt||$('cmd').value).trim(); if(!text) return;
   const key=localStorage.getItem('key');
-  if(!key) return setKey();
-  const text=$('cmd').value.trim(); if(!text) return;
+  if(!key){if(fid)$('log').textContent=addProgress(fid,text);return setKey()}
   $('log').textContent='⏳ ...';
   const open=S.tasks.filter(t=>t.status==='open').map(t=>{
     const last=t.log[t.log.length-1];
-    return '#'+t.id+' '+t.manager+': '+t.title+' (مهلت '+(t.due?t.due+(t.time?' '+t.time:''):'-')+')'+(t.crit?' [بحرانی]':'')+(last?' | آخرین وضعیت: '+last.note:'')}).join('\n');
+    return '#'+t.id+' '+t.manager+': '+t.title+' (مهلت '+(t.due?t.due+(t.time?' '+t.time:''):'-')+')'+(t.crit?' [بحرانی]':'')+(t.pct!=null?' [پیشرفت '+t.pct+'٪]':'')+(last?' | آخرین وضعیت: '+last.note:'')}).join('\n');
   const wd=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'][new Date().getDay()];
   const sys='تو دستیار مدیریت تسک هستی. امروز '+wd+' '+today()+' میلادی است (شمسی: '+fd(today())+'). مدیران: '+S.managers.join('، ')+'.\nتسک‌های باز:\n'+(open||'(هیچ)')+`
 
 فقط JSON خالص برگردان با این شکل:
-{"actions":[{"type":"add","manager":"","title":"","due":"YYYY-MM-DD","time":"HH:MM یا خالی"},{"type":"close","id":number},{"type":"progress","id":number,"note":"وضعیت، پیشرفت‌ها و کارهای باقی‌مانده","due":"YYYY-MM-DD یا خالی","time":"HH:MM یا خالی"},{"type":"feedback","manager":"","text":"متن بازخورد","kind":"عادی یا مثبت یا اصلاحی"}],"reply":"پاسخ کوتاه فارسی"}
+{"actions":[{"type":"add","manager":"","title":"","due":"YYYY-MM-DD","time":"HH:MM یا خالی"},{"type":"close","id":number},{"type":"progress","id":number,"note":"وضعیت، پیشرفت‌ها و کارهای باقی‌مانده","pct":"درصد پیشرفت همین تسک ۰ تا ۱۰۰ فقط اگر گفته شد، وگرنه null","due":"YYYY-MM-DD یا خالی","time":"HH:MM یا خالی"},{"type":"feedback","manager":"","text":"متن بازخورد","kind":"عادی یا مثبت یا اصلاحی"}],"reply":"پاسخ کوتاه فارسی"}
 قواعد تاریخ: اگر کاربر تاریخ شمسی صریح گفت (مثلاً ۲۰ آبان ۱۴۰۵) همان را به شکل YYYY-MM-DD با سال شمسی (مثل 1405-08-20) بنویس. اگر تاریخ نسبی گفت (فردا، پنجشنبه، هفته بعد) آن را از امروز حساب کن و میلادی YYYY-MM-DD بنویس. ساعت را فقط اگر کاربر گفت بنویس (۲۴ ساعته). اگر کاربر مهلت جدید نگفت، due خالی بگذار.
-اگر کاربر وضعیت خواست، actions خالی و پاسخ را در reply بده. بازخورد دادن به مدیر را با action از نوع feedback ثبت کن (نه تسک).`;
+اگر کاربر وضعیت خواست، actions خالی و پاسخ را در reply بده. بازخورد دادن به مدیر را با action از نوع feedback ثبت کن (نه تسک).`+(fid?'\nاین متن گزارش پیشرفت تسک #'+fid+' است. فقط یک action از نوع progress با id برابر '+fid+' برگردان.':'');
   try{
     const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{
       'content-type':'application/json','authorization':'Bearer '+key},
+      
       body:JSON.stringify({model:'openai/gpt-oss-120b',max_tokens:1000,messages:[{role:'system',content:sys},{role:'user',content:text}]})});
     const j=await r.json();
     if(j.error) throw new Error(j.error.message);
     const out=JSON.parse(j.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
-    const res=(out.actions||[]).map(a=>
+    const acts=(out.actions||[]).filter(a=>!fid||a.type==='progress');
+    acts.forEach(a=>{if(fid)a.id=fid});
+    const res=acts.map(a=>
       a.type==='add'?addTask(a.manager,a.title,a.due,a.time):
       a.type==='close'?closeTask(a.id):
-      a.type==='progress'?addProgress(a.id,a.note,a.due,a.time):
+      a.type==='progress'?addProgress(a.id,a.note,a.due,a.time,a.pct):
       a.type==='feedback'?addFB(a.manager,a.text,a.kind):'');
+    if(fid&&!acts.length)res.push(addProgress(fid,text));
     $('log').textContent=[...res,out.reply].filter(Boolean).join('\n');
     say(out.reply);
     if(res.some(x=>x.includes('🔴')))say('هشدار، تسک بحرانی');
-    $('cmd').value='';
-  }catch(e){$('log').textContent='خطا: '+e.message}
+    if(!fid)$('cmd').value='';
+  }catch(e){$('log').textContent='خطا: '+e.message+(fid?'\n'+addProgress(fid,text):'')}
 }
 
 /* ---------- Calendar (.ics) ---------- */
@@ -407,13 +423,14 @@ function remind(){
 }
 
 /* ---------- Render ---------- */
-const tlHTML=t=>t.log.length?'<div class="tl">'+t.log.map(e=>'<div><small>'+fd(e.date)+'</small> '+esc(e.note)+(e.due?' <span class="'+(e.crit?'red':'orange')+'">('+esc(e.due)+')</span>':'')+'</div>').join('')+'</div>':'';
+const tlHTML=t=>t.log.length?'<div class="tl">'+t.log.map(e=>'<div><small>'+fd(e.date)+'</small> '+esc(e.note)+(e.pct!=null?' <b>٪'+fa(e.pct)+'</b>':'')+(e.due?' <span class="'+(e.crit?'red':'orange')+'">('+esc(e.due)+')</span>':'')+'</div>').join('')+'</div>':'';
 const badge=t=>t.crit?'<span class="crit">🔴 بحرانی — بعد از سررسید تمدید شد'+(t.ext>1?' ('+fa(t.ext)+' بار)':'')+'</span>':'';
 
 function taskHTML(t){
   return '<div class="task '+(t.crit?'critical':overdue(t)?'red':'')+'">#'+t.id+' '+esc(t.title)+' '+badge(t)+'<small>ایجاد: '+fd(t.created)+' | مهلت: '+showDue(t)+'</small>'
+    +'<small>پیشرفت این تسک: ٪'+fa(t.pct||0)+'</small><div class="bar"><i style="width:'+(t.pct||0)+'%"></i></div>'
     +tlHTML(t)
-    +'<button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button><button class="g" onclick="closeTask('+t.id+')">بستن</button>'
+    +'<button class="mic'+(recId==t.id?' on':'')+'" onclick="taskMic('+t.id+')">🎤</button><button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button><button class="g" onclick="closeTask('+t.id+')">بستن</button>'
     +(t.due?'<a href="'+gcal(t)+'" target="_blank"><button class="x">📅 Google</button></a><button class="x" onclick="downloadICS([S.tasks.find(x=>x.id=='+t.id+')],\'task-'+t.id+'.ics\')">.ics</button>':'')+'</div>';
 }
 
@@ -435,8 +452,7 @@ function render(){
    +'<div class="card stat">بسته‌شده<b class="green">'+(vis.length-open.length)+'</b></div>';
   $('managers').innerHTML=S.managers.filter(m=>!F||m===F).map(m=>{
     const ts=S.tasks.filter(t=>t.manager===m&&t.status==='open').sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
-    const all=S.tasks.filter(t=>t.manager===m),pct=all.length?Math.round(100*(all.length-ts.length)/all.length):0;
-    return '<div class="card"><h2>'+esc(m)+' — '+ts.length+' باز / <span class="red">'+ts.filter(overdue).length+' عقب‌افتاده</span>'+(ts.some(t=>t.crit)?' / <span class="crit">'+ts.filter(t=>t.crit).length+' بحرانی</span>':'')+'</h2><small>'+pct+'٪ انجام‌شده ('+(all.length-ts.length)+' از '+all.length+')</small><div class="bar"><i style="width:'+pct+'%"></i></div>'
+    return '<div class="card"><h2>'+esc(m)+' — '+ts.length+' باز / <span class="red">'+ts.filter(overdue).length+' عقب‌افتاده</span>'+(ts.some(t=>t.crit)?' / <span class="crit">'+ts.filter(t=>t.crit).length+' بحرانی</span>':'')+'</h2>'
       +(ts.map(taskHTML).join('')||'<small>تسک بازی نیست</small>')+'</div>';
   }).join('');
   const done=vis.filter(t=>t.status==='closed').sort((a,b)=>(b.closed||'').localeCompare(a.closed||''));
