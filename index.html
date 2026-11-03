@@ -400,7 +400,7 @@ function remind(){
     const od=overdue(t);
     if(!F||t.manager===F)al.innerHTML+='<div class="alert">'+(od?'🔴 مهلت گذشته':'🟡 مهلت تا فردا')+': «'+esc(t.title)+'» — '+esc(t.manager)+' ('+showDue(t)+') <button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button></div>';
     if(S.lastRemind[t.id]!==today()&&'Notification' in window&&Notification.permission==='granted'){
-      new Notification('یادآوری تسک',{body:t.manager+': '+t.title});S.lastRemind[t.id]=today();
+      try{new Notification('یادآوری تسک',{body:t.manager+': '+t.title})}catch(e){}S.lastRemind[t.id]=today();
       localStorage.setItem('mgr',JSON.stringify(S));
     }
   });
