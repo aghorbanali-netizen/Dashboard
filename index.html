@@ -15,7 +15,8 @@ h1{margin:0 0 12px}h2{margin:0 0 8px;font-size:16px}
 .task small{color:#666;display:block}
 .critical{background:#fee2e2;border:2px solid #dc2626;border-radius:8px;padding:8px;margin:6px 0;color:#7f1d1d}
 .critical small{color:#991b1b}
-.crit{display:inline-block;background:#dc2626;color:#fff;border-radius:6px;padding:1px 8px;font-size:12px;margin:2px 0}
+.crit{display:inline-block;background:#dc2626;color:#fff;border-radius:6px;padding:1px 
+8px;font-size:12px;margin:2px 0}
 #crit .box{background:#fee2e2;border:2px solid #dc2626;border-radius:10px;padding:10px;margin-bottom:12px;color:#7f1d1d}
 .tl{margin:4px 0 6px;padding-right:12px;border-right:2px solid #bfdbfe;font-size:13px;color:#333}
 .tl div{margin:3px 0}.tl small{display:inline;color:#2563eb}
@@ -35,7 +36,8 @@ nav{display:flex;gap:6px;margin-bottom:12px}
 <body>
 <h1>📋 داشبورد مدیران زیرمجموعه</h1>
 <nav>
-  <button id="nav-tasks" onclick="setView('tasks')">📋 تسک‌ها</button>
+  <button id="nav-tasks" 
+onclick="setView('tasks')">📋 تسک‌ها</button>
   <button id="nav-fb" onclick="setView('fb')">💬 بازخورد مدیران</button>
   <button id="nav-st" onclick="setView('st')">📊 آمار و موضوعات</button>
 </nav>
@@ -53,7 +55,8 @@ nav{display:flex;gap:6px;margin-bottom:12px}
   <div class="row">
     <button class="mic" id="mic" onclick="toggleMic('cmd')">🎤</button>
     <button onclick="runAI()">اجرا</button>
-    <button class="x" onclick="setKey()">تنظیم کلید API</button>
+    <button class="x" 
+onclick="setKey()">تنظیم کلید API</button>
     <button class="x" onclick="setManagers()">ویرایش نام مدیران</button>
     <button class="x" onclick="exportICS()">📅 همه‌ی تسک‌ها در تقویم (.ics)</button>
     <button class="x" onclick="exportData()">⬇️ پشتیبان JSON</button>
@@ -69,7 +72,8 @@ nav{display:flex;gap:6px;margin-bottom:12px}
   <h2>➕ تسک جدید (دستی)</h2>
   <div class="row">
     <select id="m"></select>
-    <input id="t" placeholder="عنوان تسک" size="30">
+    <input id="t" placeholder="عنوان 
+تسک" size="30">
     <input id="d" placeholder="مهلت شمسی: ۱۴۰۵/۰۸/۱۲" inputmode="numeric" size="20">
     <input id="tm" type="time" title="ساعت (اختیاری)">
     <button onclick="addManual()">ثبت</button>
@@ -87,7 +91,8 @@ nav{display:flex;gap:6px;margin-bottom:12px}
     <h2 id="fbtitle"></h2>
     <textarea id="fbtext" rows="3" placeholder="بازخورد را بنویسید، یا 🎤 بزنید و بگویید (پس از پایان صحبت خودکار ثبت می‌شود)"></textarea>
     <div class="row">
-      <select id="fbtype"><option>عادی</option><option>مثبت</option><option>اصلاحی</option></select>
+      <select id="fbtype"><option>عادی</option><option>مثبت</
+option><option>اصلاحی</option></select>
       <button class="mic" id="fbmic" onclick="toggleMic('fbtext')">🎤</button>
       <button onclick="saveFBui()">ثبت بازخورد</button>
     </div>
@@ -104,7 +109,8 @@ nav{display:flex;gap:6px;margin-bottom:12px}
       <button onclick="classifyAI()">🏷 دسته‌بندی موضوعی تسک‌ها و بازخوردها</button>
       <button class="p" onclick="reportAI()">🧠 گزارش هوشمند وضعیت</button>
     </div>
-    <div id="aisum" style="font-size:14px;white-space:pre-wrap;margin-top:8px"></div>
+    <div id="aisum" style="font-size:14px;white-space:pre-wrap;margin-top:8px"></
+div>
   </div>
   <div class="grid" id="st-top"></div>
   <div class="card" style="margin-bottom:12px"><h2>👤 آمار هر مدیر</h2><div style="overflow-x:auto" id="st-mgr"></div></div>
@@ -128,22 +134,24 @@ let FM=localStorage.getItem('fm')||'';
 const hv=()=>location.hash==='#fb'?'fb':location.hash==='#st'?'st':'tasks';
 let V=hv();
 const save=()=>{localStorage.setItem('mgr',JSON.stringify(S));render()};
-function setF(i){F=i<0?'':S.managers[i];localStorage.setItem('flt',F);render()}
+function 
+setF(i){F=i<0?'':S.managers[i];localStorage.setItem('flt',F);render()}
 function setFM(i){FM=S.managers[i];localStorage.setItem('fm',FM);render()}
 function setView(v){V=v;location.hash=v==='tasks'?'':v;render()}
 function findMgr(name){name=String(name||'');return S.managers.find(x=>x===name)||S.managers.find(x=>x.includes(name)||name.includes(x))}
 
 /* ---------- Dates (Shamsi) ---------- */
-/* ---------- Dates (Shamsi) ---------- */
 const PD='۰۱۲۳۴۵۶۷۸۹',AD='٠١٢٣٤٥٦٧٨٩';
-const pn=s=>String(s).split('').map(c=>{const i=PD.indexOf(c);if(i>=0)return i;const j=AD.indexOf(c);return j>=0?j:c}).join('');
+const 
+pn=s=>String(s).split('').map(c=>{const i=PD.indexOf(c);if(i>=0)return i;const j=AD.indexOf(c);return j>=0?j:c}).join('');
 const fa=s=>String(s).split('').map(c=>'0123456789'.indexOf(c)>=0?PD[+c]:c).join('');
 const p2=n=>String(n).padStart(2,'0');
 const div=(a,b)=>Math.trunc(a/b);
 function g2j(gy,gm,gd){
   const gdm=[0,31,59,90,120,151,181,212,243,273,304,334];
   let jy;if(gy>1600){jy=979;gy-=1600}else{jy=0;gy-=621}
-  const gy2=gm>2?gy+1:gy;
+  const 
+gy2=gm>2?gy+1:gy;
   let days=365*gy+div(gy2+3,4)-div(gy2+99,100)+div(gy2+399,400)-80+gd+gdm[gm-1];
   jy+=33*div(days,12053);days%=12053;
   jy+=4*div(days,1461);days%=1461;
@@ -153,21 +161,24 @@ function g2j(gy,gm,gd){
   return [jy,jm,jd];
 }
 function j2g(jy,jm,jd){
-  let gy;if(jy>979){gy=1600;jy-=979}else{gy=621}
+  let 
+gy;if(jy>979){gy=1600;jy-=979}else{gy=621}
   let days=365*jy+div(jy,33)*8+div((jy%33)+3,4)+78+jd+(jm<7?(jm-1)*31:(jm-7)*30+186);
   gy+=400*div(days,146097);days%=146097;
   if(days>36524){days--;gy+=100*div(days,36524);days%=36524;if(days>=365)days++}
   gy+=4*div(days,1461);days%=1461;
   if(days>365){gy+=div(days-1,365);days=(days-1)%365}
   let gd=days+1;
-  const sa=[0,31,((gy%4===0&&gy%100!==0)||gy%400===0)?29:28,31,30,31,30,31,31,30,31,30,31];
+  const 
+sa=[0,31,((gy%4===0&&gy%100!==0)||gy%400===0)?29:28,31,30,31,30,31,31,30,31,30,31];
   let gm;for(gm=0;gm<13&&gd>sa[gm];gm++)gd-=sa[gm];
   return [gy,gm,gd];
 }
 const dstr=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
 const today=()=>dstr(new Date());
 const isDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'');
-function fd(s){if(!isDate(s))return '—';const a=s.split('-').map(Number),j=g2j(a[0],a[1],a[2]);return fa(j[0]+'/'+p2(j[1])+'/'+p2(j[2]))}
+function fd(s){if(!isDate(s))return '—';const a=s.split('-').map(Number),j=g2j(a[0],a[1],a[2]);return 
+fa(j[0]+'/'+p2(j[1])+'/'+p2(j[2]))}
 function parseDate(s){ // شمسی یا میلادی → YYYY-MM-DD ؛ '' برای خالی ؛ null برای نامعتبر
   s=pn(s||'').trim();if(!s)return '';
   const p=s.split('/').join('-').split('.').join('-').split('-').map(Number);
@@ -175,7 +186,8 @@ function parseDate(s){ // شمسی یا میلادی → YYYY-MM-DD ؛ '' برا
   let g;
   if(p[0]<1700){if(p[1]<1||p[1]>12||p[2]<1||p[2]>31)return null;g=j2g(p[0],p[1],p[2])}else g=p;
   const iso=g[0]+'-'+p2(g[1])+'-'+p2(g[2]);
-  const d=new Date(iso+'T00:00:00Z');
+  const d=new 
+Date(iso+'T00:00:00Z');
   if(isNaN(d)||d.toISOString().slice(0,10)!==iso)return null;
   return iso;
 }
@@ -185,7 +197,8 @@ function parseTime(s){
   const h=+p[0],m=+p[1];if(isNaN(h)||isNaN(m)||h<0||h>23||m<0||m>59)return null;
   return p2(h)+':'+p2(m);
 }
-function parseDT(s){ // "۱۴۰۵/۰۸/۲۰ 14:30"
+function parseDT(s){ // "۱۴۰۵/۰۸/۲۰ 
+14:30"
   const p=pn(s||'').trim().split(' ').filter(Boolean);
   if(!p.length)return {due:'',time:''};
   const due=parseDate(p[0]);if(due===null)return null;
@@ -194,16 +207,18 @@ function parseDT(s){ // "۱۴۰۵/۰۸/۲۰ 14:30"
 }
 const showDue=t=>t.due?fd(t.due)+(t.time?' ساعت '+fa(t.time):''):'—';
 const dueTs=t=>new Date(t.due+'T'+(t.time||'23:59')+':00');
-const overdue=t=>t.status==='open'&&t.due&&dueTs(t)<new Date();
+const overdue=t=>t.status==='open'&&t.due&&dueTs(t)<new 
+Date();
 
 /* ---------- Tasks ---------- */
-function addTask(manager,title,dueRaw,timeRaw){
+function addTask(manager,title,dueRaw,timeRaw,raw){
   const m=findMgr(manager);
   if(!m) return '❌ مدیر پیدا نشد: '+manager;
   const due=parseDate(dueRaw);if(due===null) return '❌ تاریخ نامعتبر: '+dueRaw;
   let time=parseTime(timeRaw);if(time===null)time='';
   if(!due)time='';
-  const nt={id:S.nid++,manager:m,title,due,time,status:'open',created:today(),log:[]};
+  const 
+nt={id:S.nid++,manager:m,title,raw:raw||title,due,time,status:'open',created:today(),log:[]};
   nt.log.push({date:today(),note:'تسک ایجاد شد'+(due?' (مهلت: '+showDue(nt)+')':'')});
   S.tasks.push(nt);
   save();
@@ -212,17 +227,19 @@ function addTask(manager,title,dueRaw,timeRaw){
 }
 function closeTask(id){
   const t=S.tasks.find(x=>x.id==id);
-  if(!t) return '❌ تسک پیدا نشد';
+  if(!t) return '❌ تسک پیدا 
+نشد';
   t.status='closed';t.closed=today();
   t.log.push({date:today(),note:'تسک بسته شد'});
   save();
   if(t.due&&$('auto').checked)setTimeout(()=>downloadICS([t],'task-'+t.id+'.ics'),300);
   return '✅ تسک «'+t.title+'» بسته شد';
 }
-function addProgress(id,note,dueRaw,timeRaw,pct){
+function addProgress(id,note,dueRaw,timeRaw,pct,raw){
   const t=S.tasks.find(x=>x.id==id);
   if(!t) return '❌ تسک پیدا نشد';
-  const e={date:today(),note:note||''};
+  const 
+e={date:today(),note:note||'',raw:raw||note||''};
   let warn='',changed=false,becameCrit=false;
   const nd=parseDate(dueRaw);
   if(nd===null)warn='\n⚠️ تاریخ نامعتبر بود و مهلت تغییر نکرد';
@@ -231,7 +248,8 @@ function addProgress(id,note,dueRaw,timeRaw,pct){
     const wasOver=overdue(t);
     const newTime=timeRaw?nt:(t.time||'');
     if(nd!==t.due||newTime!==(t.time||'')){
-      const oldTxt=showDue(t);
+      const 
+oldTxt=showDue(t);
       t.due=nd;t.time=newTime;changed=true;
       e.due='مهلت از '+oldTxt+' به '+showDue(t)+' تغییر کرد';
       if(wasOver){
@@ -243,7 +261,8 @@ function addProgress(id,note,dueRaw,timeRaw,pct){
       }
     }
   }
-  if(pct!==undefined&&pct!==null&&pct!==''&&!isNaN(+pct)){t.pct=Math.max(0,Math.min(100,Math.round(+pct)));e.pct=t.pct}
+  if(pct!==undefined&&pct!==null&&pct!==''&&!isNaN(+pct)){t.pct=Math.max(0,Math.min(100,M
+ath.round(+pct)));e.pct=t.pct}
   t.log.push(e);
   save();
   if(changed&&$('auto').checked)setTimeout(()=>downloadICS([t],'task-'+t.id+'.ics'),300);
@@ -253,7 +272,8 @@ function addProgress(id,note,dueRaw,timeRaw,pct){
 function progressPrompt(id){
   const t=S.tasks.find(x=>x.id==id);
   if(!t) return;
-  const note=prompt('وضعیت «'+t.title+'» را بنویسید (چه اتفاقی افتاد، چه پیشرفتی بود، چه کارهایی مانده):');
+  const note=prompt('وضعیت «'+t.title+'» را بنویسید (چه اتفاقی افتاد، چه پیشرفتی بود، چه کارهایی 
+مانده):');
   if(!note||!note.trim()) return;
   const cur=t.due?fd(t.due)+(t.time?' '+t.time:''):'';
   const nd=prompt('مهلت جدید (شمسی مثل ۱۴۰۵/۰۸/۲۰ و اختیاری ساعت: ۱۴۰۵/۰۸/۲۰ 14:30). اگر تغییر نمی‌کند همان را بگذارید:',cur);
@@ -262,7 +282,8 @@ function progressPrompt(id){
   const pc=prompt('درصد پیشرفت این تسک (۰ تا ۱۰۰، اختیاری):',t.pct||0);
   const msg=addProgress(id,note.trim(),r,tm,pc?pn(pc):undefined);
   $('log').textContent=msg;
-  if(msg.includes('🔴'))say('تسک بحرانی شد');
+  if(msg.includes('🔴'))say('تسک 
+بحرانی شد');
 }
 function addManual(){
   if(!$('t').value) return;
@@ -272,14 +293,17 @@ function addManual(){
 function setManagers(){
   const v=prompt('نام مدیران را با کاما جدا کنید',S.managers.join(','));
   if(v){const old=S.managers;S.managers=v.split(',').map(x=>x.trim()).filter(Boolean);
-    const fb={};
+    const 
+fb={};
     old.forEach((o,i)=>{const n=S.managers[i];if(n&&S.fb[o])fb[n]=S.fb[o]});
     S.managers.forEach(n=>{if(!fb[n]&&S.fb[n])fb[n]=S.fb[n]});
     S.fb=fb;
     S.tasks.forEach(t=>{const i=old.indexOf(t.manager);if(i>=0&&S.managers[i])t.manager=S.managers[i]});save()}
 }
 function setKey(){const k=prompt('کلید Groq (فقط در مرورگر شما ذخیره می‌شود)');if(k)localStorage.setItem('key',k)}
-/* ---------- Backup / Restore ---------- */
+
+/* ---------- Backup / Restore ---------- 
+*/
 function exportData(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));
@@ -291,7 +315,8 @@ function importData(inp){
   r.onload=()=>{
     try{
       const d=JSON.parse(r.result);
-      if(!d||!Array.isArray(d.managers)||!Array.isArray(d.tasks))throw new Error('ساختار فایل درست نیست');
+      if(!d||!Array.isArray(d.managers)||!Array.isArray(d.tasks))throw 
+new Error('ساختار فایل درست نیست');
       if(!confirm('داده‌های فعلی با این فایل جایگزین می‌شود ('+d.tasks.length+' تسک). ادامه؟'))return;
       d.tasks.forEach(t=>{t.log=t.log||[]});
       d.fb=d.fb||{};d.fbid=d.fbid||1;d.lastRemind=d.lastRemind||{};
@@ -299,7 +324,8 @@ function importData(inp){
       S=d;save();$('log').textContent='✅ بازیابی انجام شد';
     }catch(e){alert('خطا در بازیابی: '+e.message)}
     inp.value='';
-  };
+  
+};
   r.readAsText(f);
 }
 
@@ -311,7 +337,8 @@ function addFB(manager,text,type){
   if(!['عادی','مثبت','اصلاحی'].includes(type))type='عادی';
   (S.fb[m]=S.fb[m]||[]).push({id:S.fbid++,date:today(),type,text:String(text).trim()});
   save();
-  return '💬 بازخورد برای '+m+' ثبت شد';
+  return '💬 بازخورد برای '+m+' ثبت 
+شد';
 }
 function saveFBui(){
   const tx=$('fbtext').value.trim();if(!tx)return;
@@ -323,7 +350,8 @@ function delFB(id){
   S.fb[FM]=(S.fb[FM]||[]).filter(f=>f.id!==id);save();
 }
 
-/* ---------- Voice ---------- */
+/* ---------- Voice ---------- 
+*/
 let rec=null,recTarget='cmd';
 function toggleMic(target){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -333,9 +361,11 @@ function toggleMic(target){
   const btn=target==='cmd'?$('mic'):$('fbmic'),out=target==='cmd'?$('log'):$('fblog');
   rec=new SR();rec.lang='fa-IR';rec.interimResults=true;rec.continuous=false;
   btn.classList.add('on');
-  rec.onresult=e=>{$(target).value=[...e.results].map(r=>r[0].transcript).join(' ')};
+  
+rec.onresult=e=>{$(target).value=[...e.results].map(r=>r[0].transcript).join(' ')};
   rec.onerror=e=>{const m={'not-allowed':'اجازه‌ی میکروفون داده نشده. صفحه را از آدرس https باز کنید و Microphone را Allow کنید (file:// و content:// پشتیبانی نمی‌شود).','service-not-allowed':'مرورگر اجازه‌ی تشخیص گفتار نمی‌دهد (معمولاً به‌خاطر file:// یا تنظیمات).','network':'تشخیص گفتار Chrome به اینترنت و دسترسی به سرویس گوگل نیاز دارد.','no-speech':'صدایی شنیده نشد، دوباره تلاش کنید.','audio-capture':'میکروفونی پیدا نشد.'};out.textContent='خطای میکروفون ('+e.error+'): '+(m[e.error]||'')};
-  rec.onend=()=>{rec=null;btn.classList.remove('on');
+  
+rec.onend=()=>{rec=null;btn.classList.remove('on');
     if(!$(target).value.trim())return;
     if(target==='cmd')runAI();else saveFBui()};
   rec.start();
@@ -346,13 +376,15 @@ function taskMic(id){
   if(!SR){$('log').textContent='مرورگر از ورودی صوتی پشتیبانی نمی‌کند (Chrome یا Edge استفاده کنید)';return}
   if(rec){rec.stop();return}
   recId=id;let tr='';
-  rec=new SR();rec.lang='fa-IR';rec.interimResults=true;rec.continuous=false;
+  rec=new 
+SR();rec.lang='fa-IR';rec.interimResults=true;rec.continuous=false;
   rec.onresult=e=>{tr=[...e.results].map(r=>r[0].transcript).join(' ');$('log').textContent='🎤 '+tr};
   rec.onerror=e=>{$('log').textContent='خطای میکروفون ('+e.error+'): '+(e.error==='not-allowed'?'اجازه‌ی میکروفون داده نشده':e.error==='network'?'تشخیص گفتار Chrome به اینترنت و سرویس گوگل نیاز دارد':'')};
   rec.onend=()=>{rec=null;recId=null;render();if(tr.trim())runAI(id,tr.trim())};
   rec.start();render();
 }
-function say(t){
+function 
+say(t){
   if(!$('speak').checked||!t||!window.speechSynthesis)return;
   const u=new SpeechSynthesisUtterance(t);u.lang='fa-IR';speechSynthesis.speak(u);
 }
@@ -361,35 +393,41 @@ function say(t){
 async function runAI(fid,txt){
   const text=(txt||$('cmd').value).trim(); if(!text) return;
   const key=localStorage.getItem('key');
-  if(!key){if(fid)$('log').textContent=addProgress(fid,text);return setKey()}
+  if(!key){if(fid)$('log').textContent=addProgress(fid,text);return 
+setKey()}
   $('log').textContent='⏳ ...';
   const open=S.tasks.filter(t=>t.status==='open').map(t=>{
     const last=t.log[t.log.length-1];
     return '#'+t.id+' '+t.manager+': '+t.title+' (مهلت '+(t.due?t.due+(t.time?' '+t.time:''):'-')+')'+(t.crit?' [بحرانی]':'')+(t.pct!=null?' [پیشرفت '+t.pct+'٪]':'')+(last?' | آخرین وضعیت: '+last.note:'')}).join('\n');
   const wd=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'][new Date().getDay()];
-  const sys='تو دستیار مدیریت تسک هستی. امروز '+wd+' '+today()+' میلادی است (شمسی: '+fd(today())+'). مدیران: '+S.managers.join('، ')+'.\nتسک‌های باز:\n'+(open||'(هیچ)')+`
+  const sys='تو دستیار مدیریت تسک هستی. امروز '+wd+' '+today()+' میلادی است (شمسی: '+fd(today())+'). مدیران: '+S.managers.join('، ')+'.\nتسک‌های 
+باز:\n'+(open||'(هیچ)')+`
 
 فقط JSON خالص برگردان با این شکل:
-{"actions":[{"type":"add","manager":"","title":"","due":"YYYY-MM-DD","time":"HH:MM یا خالی"},{"type":"close","id":number},{"type":"progress","id":number,"note":"وضعیت، پیشرفت‌ها و کارهای باقی‌مانده","pct":"درصد پیشرفت همین تسک ۰ تا ۱۰۰ فقط اگر گفته شد، وگرنه null","due":"YYYY-MM-DD یا خالی","time":"HH:MM یا خالی"},{"type":"feedback","manager":"","text":"متن بازخورد","kind":"عادی یا مثبت یا اصلاحی"}],"reply":"پاسخ کوتاه فارسی"}
-قواعد تاریخ: اگر کاربر تاریخ شمسی صریح گفت (مثلاً ۲۰ آبان ۱۴۰۵) همان را به شکل YYYY-MM-DD با سال شمسی (مثل 1405-08-20) بنویس. اگر تاریخ نسبی گفت (فردا، پنجشنبه، هفته بعد) آن را از امروز حساب کن و میلادی YYYY-MM-DD بنویس. ساعت را فقط اگر کاربر گفت بنویس (۲۴ ساعته). اگر کاربر مهلت جدید نگفت، due خالی بگذار.
+{"actions":[{"type":"add","manager":"","title":"","due":"YYYY-MM-DD","time":"HH:MM یا خالی"},{"type":"close","id":number},{"type":"progress","id":number,"note":"خلاصه‌ی کوتاه و وفادار به متن کاربر، بدون افزودن چیزی که نگفته؛ اصل موضوع حفظ شود","pct":"درصد پیشرفت همین تسک ۰ تا ۱۰۰ فقط اگر گفته شد، وگرنه null","due":"YYYY-MM-DD یا خالی","time":"HH:MM یا خالی"},{"type":"feedback","manager":"","text":"متن بازخورد","kind":"عادی یا مثبت یا اصلاحی"}],"reply":"پاسخ کوتاه فارسی"}
+قواعد تاریخ: اگر کاربر تاریخ شمسی صریح 
+گفت (مثلاً ۲۰ آبان ۱۴۰۵) همان را به شکل YYYY-MM-DD با سال شمسی (مثل 1405-08-20) بنویس. اگر تاریخ نسبی گفت (فردا، پنجشنبه، هفته بعد) آن را از امروز حساب کن و میلادی YYYY-MM-DD بنویس. ساعت را فقط اگر کاربر گفت بنویس (۲۴ ساعته). اگر کاربر مهلت جدید نگفت، due خالی بگذار.
 اگر کاربر وضعیت خواست، actions خالی و پاسخ را در reply بده. بازخورد دادن به مدیر را با action از نوع feedback ثبت کن (نه تسک).`+(fid?'\nاین متن گزارش پیشرفت تسک #'+fid+' است. فقط یک action از نوع progress با id برابر '+fid+' برگردان.':'');
   try{
     const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{
-      'content-type':'application/json','authorization':'Bearer '+key},
+      
+'content-type':'application/json','authorization':'Bearer '+key},
       
       body:JSON.stringify({model:'openai/gpt-oss-120b',max_tokens:1000,messages:[{role:'system',content:sys},{role:'user',content:text}]})});
     const j=await r.json();
     if(j.error) throw new Error(j.error.message);
     const out=JSON.parse(j.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
-    const acts=(out.actions||[]).filter(a=>!fid||a.type==='progress');
+    const 
+acts=(out.actions||[]).filter(a=>!fid||a.type==='progress');
     acts.forEach(a=>{if(fid)a.id=fid});
     const res=acts.map(a=>
-      a.type==='add'?addTask(a.manager,a.title,a.due,a.time):
+      a.type==='add'?addTask(a.manager,a.title,a.due,a.time,text):
       a.type==='close'?closeTask(a.id):
-      a.type==='progress'?addProgress(a.id,a.note,a.due,a.time,a.pct):
+      a.type==='progress'?addProgress(a.id,a.note,a.due,a.time,a.pct,text):
       a.type==='feedback'?addFB(a.manager,a.text,a.kind):'');
     if(fid&&!acts.length)res.push(addProgress(fid,text));
-    $('log').textContent=[...res,out.reply].filter(Boolean).join('\n');
+    
+$('log').textContent=[...res,out.reply].filter(Boolean).join('\n');
     say(out.reply);
     if(res.some(x=>x.includes('🔴')))say('هشدار، تسک بحرانی');
     if(!fid)$('cmd').value='';
@@ -399,35 +437,41 @@ async function runAI(fid,txt){
 /* ---------- Calendar (.ics) ---------- */
 const CRLF=String.fromCharCode(13,10);
 const ymd=s=>s.split('-').join('');
-function nextDay(s){const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)}
+function nextDay(s){const d=new 
+Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)}
 const loc=d=>d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+'T'+p2(d.getHours())+p2(d.getMinutes())+'00';
 function evTimes(t){
   if(t.time){const s=new Date(t.due+'T'+t.time+':00'),e=new Date(+s+36e5);return {st:'DTSTART:'+loc(s),en:'DTEND:'+loc(e),timed:true}}
   return {st:'DTSTART;VALUE=DATE:'+ymd(t.due),en:'DTEND;VALUE=DATE:'+ymd(nextDay(t.due)),timed:false};
 }
-function buildICS(tasks){
+function 
+buildICS(tasks){
   const now=new Date().toISOString().split('-').join('').split(':').join('').split('.')[0]+'Z';
   const ev=tasks.filter(t=>t.due).map(t=>{
     const closed=t.status==='closed',tt=evTimes(t);
     const alarms=closed?[]:(tt.timed
-      ?['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:فردا مهلت تسک است','TRIGGER:-P1D','END:VALARM','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:نیم ساعت تا مهلت تسک','TRIGGER:-PT30M','END:VALARM']
+      ?['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:فردا مهلت تسک است','TRIGGER:-P1D','END:VALARM','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:نیم ساعت تا مهلت 
+تسک','TRIGGER:-PT30M','END:VALARM']
       :['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:فردا مهلت تسک است','TRIGGER:-PT15H','END:VALARM','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:امروز مهلت تسک است','TRIGGER:PT9H','END:VALARM']);
     return ['BEGIN:VEVENT','UID:task-'+t.id+'@mgr-dashboard','DTSTAMP:'+now,'SEQUENCE:'+t.log.length,
-      tt.st,tt.en,'SUMMARY:'+(closed?'✔ ':'')+t.manager+': '+t.title,'STATUS:'+(closed?'CANCELLED':'CONFIRMED'),
+      tt.st,tt.en,'SUMMARY:'+(closed?'✔ ':'')+t.manager+': 
+'+t.title,'STATUS:'+(closed?'CANCELLED':'CONFIRMED'),
       ...alarms,'END:VEVENT'].join(CRLF)}).join(CRLF);
   return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//mgr-dashboard//FA',ev,'END:VCALENDAR'].join(CRLF);
 }
 function downloadICS(tasks,name){
   if(!tasks.length)return;
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([buildICS(tasks)],{type:'text/calendar;charset=utf-8'}));
+  a.href=URL.createObjectURL(new 
+Blob([buildICS(tasks)],{type:'text/calendar;charset=utf-8'}));
   a.download=name;a.click();
 }
 const exportICS=()=>downloadICS(S.tasks,'all-tasks.ics');
 function gcal(t){
   const tt=evTimes(t);
   const dates=t.time?tt.st.slice(8)+'/'+tt.en.slice(6):ymd(t.due)+'/'+ymd(nextDay(t.due));
-  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(t.manager+': '+t.title)+'&dates='+dates;
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(t.manager+': 
+'+t.title)+'&dates='+dates;
 }
 
 /* ---------- Reminders ---------- */
@@ -437,7 +481,8 @@ function remind(){
   const al=$('alerts');al.innerHTML='';
   tl.forEach(t=>{
     const od=overdue(t);
-    if(!F||t.manager===F)al.innerHTML+='<div class="alert">'+(od?'🔴 مهلت گذشته':'🟡 مهلت تا فردا')+': «'+esc(t.title)+'» — '+esc(t.manager)+' ('+showDue(t)+') <button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button></div>';
+    if(!F||t.manager===F)al.innerHTML+='<div class="alert">'+(od?'🔴 مهلت گذشته':'🟡 مهلت تا فردا')+': «'+esc(t.title)+'» — 
+'+esc(t.manager)+' ('+showDue(t)+') <button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button></div>';
     if(S.lastRemind[t.id]!==today()&&'Notification' in window&&Notification.permission==='granted'){
       try{new Notification('یادآوری تسک',{body:t.manager+': '+t.title})}catch(e){}S.lastRemind[t.id]=today();
       localStorage.setItem('mgr',JSON.stringify(S));
@@ -455,107 +500,131 @@ function mstats(m){
   const fb=S.fb[m]||[];
   return {m,open:op.length,closed:cl.length,od:op.filter(overdue).length,crit:ts.filter(t=>t.crit).length,ext:ts.reduce((a,t)=>a+(t.ext||0),0),
     ontime:cd.length?Math.round(100*ot.length/cd.length):null,dur:cl.filter(t=>t.closed&&t.created).length?avg(cl.filter(t=>t.closed&&t.created).map(t=>days(t.created,t.closed))):null,
-    pct:op.length?Math.round(avg(op.map(t=>t.pct||0))):null,
+    
+pct:op.length?Math.round(avg(op.map(t=>t.pct||0))):null,
     fbp:fb.filter(f=>f.type==='مثبت').length,fbc:fb.filter(f=>f.type==='اصلاحی').length,fbn:fb.filter(f=>f.type==='عادی').length};
 }
 const bar=(n,max,c)=>'<div class="bar"><i style="width:'+(max?100*n/max:0)+'%;background:'+(c||'#2563eb')+'"></i></div>';
 function renderStats(){
   const all=S.managers.map(mstats),T=S.tasks;
-  const op=T.filter(t=>t.status==='open');
+  const 
+op=T.filter(t=>t.status==='open');
   $('st-top').innerHTML=[['کل تسک‌ها',T.length,''],['باز',op.length,'orange'],['مهلت گذشته',op.filter(overdue).length,'red'],['بحرانی',T.filter(t=>t.crit).length,'red'],['بسته‌شده',T.length-op.length,'green'],['بازخورد',Object.values(S.fb).reduce((a,l)=>a+l.length,0),'']].map(x=>'<div class="card stat">'+x[0]+'<b class="'+x[2]+'">'+fa(x[1])+'</b></div>').join('');
   const f1=v=>v==null?'—':fa(Math.round(v*10)/10);
-  $('st-mgr').innerHTML='<table style="border-collapse:collapse;font-size:13px;width:100%;text-align:center"><tr style="background:#eef"><th>مدیر</th><th>باز</th><th>بسته</th><th>عقب‌افتاده</th><th>بحرانی</th><th>تمدید</th><th>به‌موقع٪</th><th>میانگین روز انجام</th><th>میانگین پیشرفت باز٪</th><th>بازخورد (مثبت / اصلاحی / عادی)</th></tr>'
-   +all.map(r=>'<tr style="border-bottom:1px solid #eee"><td><b>'+esc(r.m)+'</b></td><td>'+fa(r.open)+'</td><td>'+fa(r.closed)+'</td><td class="red">'+fa(r.od)+'</td><td class="red">'+fa(r.crit)+'</td><td>'+fa(r.ext)+'</td><td>'+f1(r.ontime)+'</td><td>'+f1(r.dur)+'</td><td>'+f1(r.pct)+'</td><td>'+fa(r.fbp)+' / '+fa(r.fbc)+' / '+fa(r.fbn)+'</td></tr>').join('')+'</table>';
+  $('st-mgr').innerHTML='<table 
+style="border-collapse:collapse;font-size:13px;width:100%;text-align:center"><tr style="background:#eef"><th>مدیر</th><th>باز</th><th>بسته</th><th>عقب‌افتاده</th><th>بحرانی</th><th>تمدید</th><th>به‌موقع٪</th><th>میانگین روز انجام</th><th>میانگین پیشرفت باز٪</th><th>بازخورد (مثبت / اصلاحی / عادی)</th></tr>'
+   +all.map(r=>'<tr style="border-bottom:1px solid #eee"><td><b>'+esc(r.m)+'</b></td><td>'+fa(r.open)+'</td><td>'+fa(r.closed)+'</td><td class="red">'+fa(r.od)+'</td><td 
+class="red">'+fa(r.crit)+'</td><td>'+fa(r.ext)+'</td><td>'+f1(r.ontime)+'</td><td>'+f1(r.dur)+'</td><td>'+f1(r.pct)+'</td><td>'+fa(r.fbp)+' / '+fa(r.fbc)+' / '+fa(r.fbn)+'</td></tr>').join('')+'</table>';
   const tp={};
   T.forEach(t=>{const k=t.topic||'بدون موضوع';(tp[k]=tp[k]||{n:0,od:0,ext:0,cl:0});tp[k].n++;tp[k].ext+=t.ext||0;if(t.status==='closed')tp[k].cl++;else if(overdue(t))tp[k].od++});
-  Object.entries(S.fb).forEach(([m,l])=>l.forEach(f=>{const k=f.topic||'بدون موضوع';(tp[k]=tp[k]||{n:0,od:0,ext:0,cl:0,fb:0});tp[k].fb=(tp[k].fb||0)+1}));
+  Object.entries(S.fb).forEach(([m,l])=>l.forEach(f=>{const 
+k=f.topic||'بدون موضوع';(tp[k]=tp[k]||{n:0,od:0,ext:0,cl:0,fb:0});tp[k].fb=(tp[k].fb||0)+1}));
   const ent=Object.entries(tp).sort((a,b)=>b[1].n-a[1].n),mx=Math.max(1,...ent.map(e=>e[1].n));
-  $('st-topic').innerHTML=ent.map(([k,v])=>'<div style="font-size:13px"><b>'+esc(k)+'</b> — '+fa(v.n)+' تسک'+(v.od?' ، <span class="red">'+fa(v.od)+' عقب‌افتاده</span>':'')+(v.ext?' ، '+fa(v.ext)+' تمدید':'')+(v.fb?' ، '+fa(v.fb)+' بازخورد':'')+bar(v.n,mx)+'</div>').join('')||'<small>داده‌ای نیست</small>';
+  $('st-topic').innerHTML=ent.map(([k,v])=>'<div style="font-size:13px"><b>'+esc(k)+'</b> — '+fa(v.n)+' تسک'+(v.od?' ، <span class="red">'+fa(v.od)+' عقب‌افتاده</span>':'')+(v.ext?' ، '+fa(v.ext)+' تمدید':'')+(v.fb?' ، '+fa(v.fb)+' 
+بازخورد':'')+bar(v.n,mx)+'</div>').join('')||'<small>داده‌ای نیست</small>';
   const wc={},wd={};
   T.forEach(t=>{if(t.created)wc[wk(t.created)]=(wc[wk(t.created)]||0)+1;if(t.closed)wd[wk(t.closed)]=(wd[wk(t.closed)]||0)+1});
   const ws=[];let d=new Date();for(let i=7;i>=0;i--){ws.push(wk(new Date(Date.now()-i*7*864e5).toISOString().slice(0,10)))}
   const mw=Math.max(1,...ws.map(w=>Math.max(wc[w]||0,wd[w]||0)));
-  $('st-trend').innerHTML=ws.map(w=>'<div style="font-size:12px">هفته‌ی '+fd(w)+' — ایجاد '+fa(wc[w]||0)+' / بسته '+fa(wd[w]||0)+bar(wc[w]||0,mw)+bar(wd[w]||0,mw,'#16a34a')+'</div>').join('');
+  $('st-trend').innerHTML=ws.map(w=>'<div style="font-size:12px">هفته‌ی 
+'+fd(w)+' — ایجاد '+fa(wc[w]||0)+' / بسته '+fa(wd[w]||0)+bar(wc[w]||0,mw)+bar(wd[w]||0,mw,'#16a34a')+'</div>').join('');
 }
 async function callGroq(sys,user,max){
   const key=localStorage.getItem('key');if(!key){setKey();throw new Error('ابتدا کلید را وارد کنید')}
-  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+key},body:JSON.stringify({model:'openai/gpt-oss-120b',max_tokens:max||2000,messages:[{role:'system',content:sys},{role:'user',content:user}]})});
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer 
+'+key},body:JSON.stringify({model:'openai/gpt-oss-120b',max_tokens:max||2000,messages:[{role:'system',content:sys},{role:'user',content:user}]})});
   const j=await r.json();if(j.error)throw new Error(j.error.message);return j.choices[0].message.content;
 }
 async function classifyAI(){
   const items=[];
   S.tasks.filter(t=>!t.topic).forEach(t=>items.push('t'+t.id+': '+t.title+(t.log.length?' | '+t.log.map(e=>e.note).join('؛ ').slice(0,200):'')));
-  Object.values(S.fb).forEach(l=>l.filter(f=>!f.topic).forEach(f=>items.push('f'+f.id+': '+f.text.slice(0,200))));
+  
+Object.values(S.fb).forEach(l=>l.filter(f=>!f.topic).forEach(f=>items.push('f'+f.id+': '+f.text.slice(0,200))));
   if(!items.length){$('aisum').textContent='همه‌ی موارد قبلاً دسته‌بندی شده‌اند.';return}
   $('aisum').textContent='⏳ در حال دسته‌بندی '+fa(items.length)+' مورد...';
   try{
     const known=[...new Set([...S.tasks.map(t=>t.topic),...Object.values(S.fb).flat().map(f=>f.topic)].filter(Boolean))];
-    const c=await callGroq('تو تحلیلگر موضوعی هستی. برای هر مورد یک موضوع کوتاه فارسی (۱ تا ۳ کلمه) بده. حداکثر ۸ موضوع کلی در کل داشته باش و تا حد امکان از موضوع‌های موجود استفاده کن: '+(known.join('، ')||'(هنوز نیست)')+'. فقط JSON خالص: {"topics":{"t1":"موضوع","f2":"موضوع"}}',items.join('\n'),3000);
+    const c=await callGroq('تو تحلیلگر موضوعی هستی. برای هر مورد یک موضوع کوتاه فارسی (۱ تا ۳ کلمه) بده. حداکثر ۸ موضوع کلی در کل داشته باش و تا حد امکان از موضوع‌های موجود استفاده کن: '+(known.join('، ')||'(هنوز نیست)')+'. 
+فقط JSON خالص: {"topics":{"t1":"موضوع","f2":"موضوع"}}',items.join('\n'),3000);
     const tp=JSON.parse(c.match(/\{[\s\S]*\}/)[0]).topics||{};
     let n=0;
     S.tasks.forEach(t=>{if(tp['t'+t.id]){t.topic=String(tp['t'+t.id]);n++}});
     Object.values(S.fb).forEach(l=>l.forEach(f=>{if(tp['f'+f.id]){f.topic=String(tp['f'+f.id]);n++}}));
     localStorage.setItem('mgr',JSON.stringify(S));renderStats();$('aisum').textContent='✅ '+fa(n)+' مورد دسته‌بندی شد.';
-  }catch(e){$('aisum').textContent='خطا: '+e.message}
+  }catch(e){$('aisum').textContent='خطا: 
+'+e.message}
 }
 async function reportAI(){
   $('aisum').textContent='⏳ ...';
   try{
     const rows=S.managers.map(mstats).map(r=>r.m+': باز '+r.open+'، بسته '+r.closed+'، عقب‌افتاده '+r.od+'، بحرانی '+r.crit+'، تمدید '+r.ext+'، به‌موقع '+(r.ontime==null?'-':r.ontime+'٪')+'، بازخورد مثبت/اصلاحی '+r.fbp+'/'+r.fbc).join('\n');
-    const tk=S.tasks.map(t=>t.manager+' | '+(t.topic||'-')+' | '+t.title+' | '+t.status+(t.due?' | مهلت '+fd(t.due):'')+(t.crit?' | بحرانی':'')+(t.pct!=null?' | '+t.pct+'٪':'')+(t.log.length?' | آخرین: '+t.log[t.log.length-1].note.slice(0,120):'')).join('\n');
+    const tk=S.tasks.map(t=>t.manager+' | '+(t.topic||'-')+' | '+t.title+' | '+t.status+(t.due?' | مهلت '+fd(t.due):'')+(t.crit?' | بحرانی':'')+(t.pct!=null?' | 
+'+t.pct+'٪':'')+(t.log.length?' | آخرین: '+t.log[t.log.length-1].note.slice(0,120):'')).join('\n');
     const fb=Object.entries(S.fb).flatMap(([m,l])=>l.map(f=>m+' | '+f.type+' | '+(f.topic||'-')+' | '+f.text.slice(0,150))).join('\n');
-    const c=await callGroq('تو مشاور مدیریتی هستی. امروز '+fd(today())+' است. براساس داده‌ها گزارش کوتاه و کاربردی فارسی بنویس با این بخش‌ها: ۱) خلاصه‌ی وضعیت هر مدیر (۱ تا ۲ جمله) ۲) موضوع‌هایی که بیشتر عقب می‌افتند یا تمدید می‌شوند ۳) الگوهای تکرارشونده ۴) پیشنهاد اقدام برای جلسه‌ی بعد. فقط براساس داده بنویس و حدس نزن. متن ساده بدون markdown.','آمار:\n'+rows+'\n\nتسک‌ها:\n'+tk+'\n\nبازخوردها:\n'+(fb||'-'),3000);
+    const c=await callGroq('تو مشاور مدیریتی هستی. امروز '+fd(today())+' است. براساس داده‌ها گزارش کوتاه و کاربردی فارسی بنویس با این بخش‌ها: ۱) خلاصه‌ی وضعیت هر مدیر (۱ تا ۲ جمله) ۲) موضوع‌هایی که بیشتر عقب می‌افتند یا تمدید می‌شوند ۳) الگوهای تکرارشونده ۴) پیشنهاد اقدام برای جلسه‌ی بعد. فقط براساس داده بنویس و حدس نزن. متن ساده بدون 
+markdown.','آمار:\n'+rows+'\n\nتسک‌ها:\n'+tk+'\n\nبازخوردها:\n'+(fb||'-'),3000);
     $('aisum').textContent=c;
   }catch(e){$('aisum').textContent='خطا: '+e.message}
 }
 
 /* ---------- Render ---------- */
-const tlHTML=t=>t.log.length?'<div class="tl">'+t.log.map(e=>'<div><small>'+fd(e.date)+'</small> '+esc(e.note)+(e.pct!=null?' <b>٪'+fa(e.pct)+'</b>':'')+(e.due?' <span class="'+(e.crit?'red':'orange')+'">('+esc(e.due)+')</span>':'')+'</div>').join('')+'</div>':'';
+const tlHTML=t=>t.log.length?'<div class="tl">'+t.log.map(e=>'<div><small>'+fd(e.date)+'</small> '+esc(e.note)+(e.raw&&e.raw!==e.note?'<div style="font-size:12px;color:#666;white-space:pre-wrap">متن اصلی: 
+'+esc(e.raw)+'</div>':'')+(e.pct!=null?' <b>٪'+fa(e.pct)+'</b>':'')+(e.due?' <span class="'+(e.crit?'red':'orange')+'">('+esc(e.due)+')</span>':'')+'</div>').join('')+'</div>':'';
 const badge=t=>t.crit?'<span class="crit">🔴 بحرانی — بعد از سررسید تمدید شد'+(t.ext>1?' ('+fa(t.ext)+' بار)':'')+'</span>':'';
 
 function taskHTML(t){
-  return '<div class="task '+(t.crit?'critical':overdue(t)?'red':'')+'">#'+t.id+' '+esc(t.title)+' '+badge(t)+'<small>ایجاد: '+fd(t.created)+' | مهلت: '+showDue(t)+'</small>'
+  return '<div class="task '+(t.crit?'critical':overdue(t)?'red':'')+'">#'+t.id+' '+esc(t.title)+' '+badge(t)+(t.raw&&t.raw!==t.title?'<div 
+style="font-size:13px;color:#444;white-space:pre-wrap;margin:4px 0">'+esc(t.raw)+'</div>':'')+'<small>ایجاد: '+fd(t.created)+' | مهلت: '+showDue(t)+'</small>'
     +'<small>پیشرفت این تسک: ٪'+fa(t.pct||0)+'</small><div class="bar"><i style="width:'+(t.pct||0)+'%"></i></div>'
     +tlHTML(t)
-    +'<button class="mic'+(recId==t.id?' on':'')+'" onclick="taskMic('+t.id+')">🎤</button><button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button><button class="g" onclick="closeTask('+t.id+')">بستن</button>'
+    +'<button class="mic'+(recId==t.id?' on':'')+'" onclick="taskMic('+t.id+')">🎤</button><button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button><button class="g" 
+onclick="closeTask('+t.id+')">بستن</button>'
     +(t.due?'<a href="'+gcal(t)+'" target="_blank"><button class="x">📅 Google</button></a><button class="x" onclick="downloadICS([S.tasks.find(x=>x.id=='+t.id+')],\'task-'+t.id+'.ics\')">.ics</button>':'')+'</div>';
 }
 
 function render(){
   if(!S.managers.includes(F))F='';
   if(!S.managers.includes(FM))FM=S.managers[0]||'';
-  $('v-tasks').style.display=V==='tasks'?'':'none';
+  
+$('v-tasks').style.display=V==='tasks'?'':'none';
   $('v-fb').style.display=V==='fb'?'':'none';
   $('v-st').style.display=V==='st'?'':'none';$('nav-st').className=V==='st'?'':'x';
   if(V==='st')renderStats();
   $('nav-tasks').className=V==='tasks'?'':'x';$('nav-fb').className=V==='fb'?'':'x';
   /* tasks */
   $('m').innerHTML=S.managers.map(m=>'<option>'+esc(m)+'</option>').join('');
-  $('filter').innerHTML=['',...S.managers].map((m,i)=>'<button class="'+(m===F?'':'x')+'" onclick="setF('+(i-1)+')">'+(esc(m)||'همه')+'</button>').join('');
+  
+$('filter').innerHTML=['',...S.managers].map((m,i)=>'<button class="'+(m===F?'':'x')+'" onclick="setF('+(i-1)+')">'+(esc(m)||'همه')+'</button>').join('');
   const vis=S.tasks.filter(t=>!F||t.manager===F);
   const open=vis.filter(t=>t.status==='open'),od=open.filter(overdue),cr=open.filter(t=>t.crit);
-  $('crit').innerHTML=cr.length?'<div class="box"><b>🔴 موارد بحرانی ('+fa(cr.length)+') — بعد از سررسید تمدید شده‌اند و هنوز باز هستند</b>'+cr.map(t=>'<div class="task">'+esc(t.manager)+': '+esc(t.title)+' — مهلت فعلی: '+showDue(t)+(t.ext>1?' ('+fa(t.ext)+' بار تمدید)':'')+' <button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button></div>').join('')+'</div>':'';
+  $('crit').innerHTML=cr.length?'<div class="box"><b>🔴 موارد بحرانی ('+fa(cr.length)+') — بعد از سررسید تمدید شده‌اند و هنوز باز هستند</b>'+cr.map(t=>'<div class="task">'+esc(t.manager)+': 
+'+esc(t.title)+' — مهلت فعلی: '+showDue(t)+(t.ext>1?' ('+fa(t.ext)+' بار تمدید)':'')+' <button class="p" onclick="progressPrompt('+t.id+')">📝 ثبت پیشرفت</button></div>').join('')+'</div>':'';
   $('stats').innerHTML='<div class="card stat">باز<b class="orange">'+open.length+'</b></div>'
    +'<div class="card stat">مهلت گذشته<b class="red">'+od.length+'</b></div>'
    +'<div class="card stat">بحرانی<b class="red">'+cr.length+'</b></div>'
    +'<div class="card stat">بسته‌شده<b class="green">'+(vis.length-open.length)+'</b></div>';
-  $('managers').innerHTML=S.managers.filter(m=>!F||m===F).map(m=>{
+  
+$('managers').innerHTML=S.managers.filter(m=>!F||m===F).map(m=>{
     const ts=S.tasks.filter(t=>t.manager===m&&t.status==='open').sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
     const all=S.tasks.filter(t=>t.manager===m),pct=all.length?Math.round(100*(all.length-ts.length)/all.length):0;
-    return '<div class="card"><h2>'+esc(m)+' — '+ts.length+' باز / <span class="red">'+ts.filter(overdue).length+' عقب‌افتاده</span>'+(ts.some(t=>t.crit)?' / <span class="crit">'+ts.filter(t=>t.crit).length+' بحرانی</span>':'')+'</h2>'
+    return '<div class="card"><h2>'+esc(m)+' — '+ts.length+' باز / <span class="red">'+ts.filter(overdue).length+' عقب‌افتاده</span>'+(ts.some(t=>t.crit)?' / <span 
+class="crit">'+ts.filter(t=>t.crit).length+' بحرانی</span>':'')+'</h2>'
       +(ts.map(taskHTML).join('')||'<small>تسک بازی نیست</small>')+'</div>';
   }).join('');
   const done=vis.filter(t=>t.status==='closed').sort((a,b)=>(b.closed||'').localeCompare(a.closed||''));
-  $('closed').innerHTML=done.map(t=>'<div class="task">#'+t.id+' '+esc(t.manager)+': '+esc(t.title)+' '+badge(t)+'<small>ایجاد: '+fd(t.created)+' | مهلت: '+showDue(t)+' | خاتمه: '+fd(t.closed)+'</small>'+tlHTML(t)+'</div>').join('')||'<small>تسک بسته‌شده‌ای نیست</small>';
+  $('closed').innerHTML=done.map(t=>'<div class="task">#'+t.id+' '+esc(t.manager)+': '+esc(t.title)+' '+badge(t)+(t.raw&&t.raw!==t.title?'<div 
+style="font-size:13px;color:#444;white-space:pre-wrap;margin:4px 0">'+esc(t.raw)+'</div>':'')+'<small>ایجاد: '+fd(t.created)+' | مهلت: '+showDue(t)+' | خاتمه: '+fd(t.closed)+'</small>'+tlHTML(t)+'</div>').join('')||'<small>تسک بسته‌شده‌ای نیست</small>';
   remind();
   /* feedback */
   $('fbtabs').innerHTML=S.managers.map((m,i)=>'<button class="'+(m===FM?'':'x')+'" onclick="setFM('+i+')">'+esc(m)+' ('+fa((S.fb[m]||[]).length)+')</button>').join('');
-  $('fbtitle').textContent='💬 ثبت بازخورد برای '+FM;
+  $('fbtitle').textContent='💬 ثبت 
+بازخورد برای '+FM;
   const fl=(S.fb[FM]||[]).slice().reverse();
   $('fblist').innerHTML=fl.map(f=>'<div class="task fb-'+f.type+'"><small>'+fd(f.date)+' — '+esc(f.type)+'</small>'+esc(f.text)+' <button class="x" onclick="delFB('+f.id+')">حذف</button></div>').join('')||'<small>هنوز بازخوردی برای '+esc(FM)+' ثبت نشده</small>';
 }
 window.addEventListener('hashchange',()=>{V=hv();render()});
-if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+if('Notification' in 
+window&&Notification.permission==='default')Notification.requestPermission();
 render();setInterval(render,60000);
 </script>
 </body>
