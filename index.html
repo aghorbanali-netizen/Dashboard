@@ -341,7 +341,7 @@ async function runAI(){
   try{
     const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{
       'content-type':'application/json','authorization':'Bearer '+key},
-      body:JSON.stringify({model:'llama-3.1-8b-instant',max_tokens:1000,messages:[{role:'system',content:sys},{role:'user',content:text}]})});
+      body:JSON.stringify({model:'openai/gpt-oss-120b',max_tokens:1000,messages:[{role:'system',content:sys},{role:'user',content:text}]})});
     const j=await r.json();
     if(j.error) throw new Error(j.error.message);
     const out=JSON.parse(j.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
