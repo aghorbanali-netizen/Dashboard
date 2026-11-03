@@ -37,6 +37,7 @@ nav{display:flex;gap:6px;margin-bottom:12px}
 <nav>
   <button id="nav-tasks" onclick="setView('tasks')">📋 تسک‌ها</button>
   <button id="nav-fb" onclick="setView('fb')">💬 بازخورد مدیران</button>
+  <button id="nav-st" onclick="setView('st')">📊 آمار و موضوعات</button>
 </nav>
 
 <!-- ============ صفحه تسک‌ها ============ -->
@@ -95,22 +96,44 @@ nav{display:flex;gap:6px;margin-bottom:12px}
   <div class="card"><h2>تاریخچه‌ی بازخوردها</h2><div id="fblist"></div></div>
 </div>
 
+<!-- ============ صفحه آمار ============ -->
+<div id="v-st" style="display:none">
+  <div class="card" style="margin-bottom:12px">
+    <h2>🧠 تحلیل موضوعی با هوش مصنوعی</h2>
+    <div class="row">
+      <button onclick="classifyAI()">🏷 دسته‌بندی موضوعی تسک‌ها و بازخوردها</button>
+      <button class="p" onclick="reportAI()">🧠 گزارش هوشمند وضعیت</button>
+    </div>
+    <div id="aisum" style="font-size:14px;white-space:pre-wrap;margin-top:8px"></div>
+  </div>
+  <div class="grid" id="st-top"></div>
+  <div class="card" style="margin-bottom:12px"><h2>👤 آمار هر مدیر</h2><div style="overflow-x:auto" id="st-mgr"></div></div>
+  <div class="grid">
+    <div class="card"><h2>🏷 موضوعات</h2><div id="st-topic"></div></div>
+    <div class="card"><h2>📈 روند ۸ هفته‌ی اخیر</h2><div id="st-trend"></div></div>
+  </div>
+</div>
+
 <script>
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;');
 
 /* ---------- State ---------- */
-let S=JSON.parse(localStorage.getItem('mgr')||'null')||{managers:['دانشپور','خانبابایی','زرگینی','شیبانی'],tasks:[],nid:1,lastRemind:{}};
+let S=JSON.parse(localStorage.getItem('mgr')||'null')||{managers:['دانشپور','خانبابایی','زرگینی','شیبانی','خودم','رحیم‌زاده'],m6:1,tasks:[],nid:1,lastRemind:{}};
 S.tasks.forEach(t=>{t.log=t.log||[]});
+if(!S.m6){['خودم','رحیم‌زاده'].forEach(n=>{if(!S.managers.includes(n))S.managers.push(n)});S.m6=1}
 S.fb=S.fb||{};S.fbid=S.fbid||1;S.lastRemind=S.lastRemind||{};
 let F=localStorage.getItem('flt')||'';
 let FM=localStorage.getItem('fm')||'';
-let V=(location.hash==='#fb')?'fb':'tasks';
+const hv=()=>location.hash==='#fb'?'fb':location.hash==='#st'?'st':'tasks';
+let V=hv();
 const save=()=>{localStorage.setItem('mgr',JSON.stringify(S));render()};
 function setF(i){F=i<0?'':S.managers[i];localStorage.setItem('flt',F);render()}
 function setFM(i){FM=S.managers[i];localStorage.setItem('fm',FM);render()}
-function setView(v){V=v;location.hash=v==='fb'?'fb':'';render()}
+function setView(v){V=v;location.hash=v==='tasks'?'':v;render()}
 function findMgr(name){name=String(name||'');return S.managers.find(x=>x===name)||S.managers.find(x=>x.includes(name)||name.includes(x))}
+
+/* ---------- Dates (Shamsi) ---------- */
 /* ---------- Dates (Shamsi) ---------- */
 const PD='۰۱۲۳۴۵۶۷۸۹',AD='٠١٢٣٤٥٦٧٨٩';
 const pn=s=>String(s).split('').map(c=>{const i=PD.indexOf(c);if(i>=0)return i;const j=AD.indexOf(c);return j>=0?j:c}).join('');
@@ -247,7 +270,7 @@ function addManual(){
   $('t').value='';$('d').value='';$('tm').value='';
 }
 function setManagers(){
-  const v=prompt('نام ۴ مدیر را با کاما جدا کنید',S.managers.join(','));
+  const v=prompt('نام مدیران را با کاما جدا کنید',S.managers.join(','));
   if(v){const old=S.managers;S.managers=v.split(',').map(x=>x.trim()).filter(Boolean);
     const fb={};
     old.forEach((o,i)=>{const n=S.managers[i];if(n&&S.fb[o])fb[n]=S.fb[o]});
@@ -422,6 +445,70 @@ function remind(){
   });
 }
 
+/* ---------- Stats ---------- */
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const days=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);
+const wk=d=>{const x=new Date(d+'T00:00:00Z');x.setUTCDate(x.getUTCDate()-((x.getUTCDay()+1)%7));return x.toISOString().slice(0,10)};
+function mstats(m){
+  const ts=S.tasks.filter(t=>t.manager===m),op=ts.filter(t=>t.status==='open'),cl=ts.filter(t=>t.status==='closed');
+  const cd=cl.filter(t=>t.due&&t.closed),ot=cd.filter(t=>t.closed<=t.due);
+  const fb=S.fb[m]||[];
+  return {m,open:op.length,closed:cl.length,od:op.filter(overdue).length,crit:ts.filter(t=>t.crit).length,ext:ts.reduce((a,t)=>a+(t.ext||0),0),
+    ontime:cd.length?Math.round(100*ot.length/cd.length):null,dur:cl.filter(t=>t.closed&&t.created).length?avg(cl.filter(t=>t.closed&&t.created).map(t=>days(t.created,t.closed))):null,
+    pct:op.length?Math.round(avg(op.map(t=>t.pct||0))):null,
+    fbp:fb.filter(f=>f.type==='مثبت').length,fbc:fb.filter(f=>f.type==='اصلاحی').length,fbn:fb.filter(f=>f.type==='عادی').length};
+}
+const bar=(n,max,c)=>'<div class="bar"><i style="width:'+(max?100*n/max:0)+'%;background:'+(c||'#2563eb')+'"></i></div>';
+function renderStats(){
+  const all=S.managers.map(mstats),T=S.tasks;
+  const op=T.filter(t=>t.status==='open');
+  $('st-top').innerHTML=[['کل تسک‌ها',T.length,''],['باز',op.length,'orange'],['مهلت گذشته',op.filter(overdue).length,'red'],['بحرانی',T.filter(t=>t.crit).length,'red'],['بسته‌شده',T.length-op.length,'green'],['بازخورد',Object.values(S.fb).reduce((a,l)=>a+l.length,0),'']].map(x=>'<div class="card stat">'+x[0]+'<b class="'+x[2]+'">'+fa(x[1])+'</b></div>').join('');
+  const f1=v=>v==null?'—':fa(Math.round(v*10)/10);
+  $('st-mgr').innerHTML='<table style="border-collapse:collapse;font-size:13px;width:100%;text-align:center"><tr style="background:#eef"><th>مدیر</th><th>باز</th><th>بسته</th><th>عقب‌افتاده</th><th>بحرانی</th><th>تمدید</th><th>به‌موقع٪</th><th>میانگین روز انجام</th><th>میانگین پیشرفت باز٪</th><th>بازخورد (مثبت / اصلاحی / عادی)</th></tr>'
+   +all.map(r=>'<tr style="border-bottom:1px solid #eee"><td><b>'+esc(r.m)+'</b></td><td>'+fa(r.open)+'</td><td>'+fa(r.closed)+'</td><td class="red">'+fa(r.od)+'</td><td class="red">'+fa(r.crit)+'</td><td>'+fa(r.ext)+'</td><td>'+f1(r.ontime)+'</td><td>'+f1(r.dur)+'</td><td>'+f1(r.pct)+'</td><td>'+fa(r.fbp)+' / '+fa(r.fbc)+' / '+fa(r.fbn)+'</td></tr>').join('')+'</table>';
+  const tp={};
+  T.forEach(t=>{const k=t.topic||'بدون موضوع';(tp[k]=tp[k]||{n:0,od:0,ext:0,cl:0});tp[k].n++;tp[k].ext+=t.ext||0;if(t.status==='closed')tp[k].cl++;else if(overdue(t))tp[k].od++});
+  Object.entries(S.fb).forEach(([m,l])=>l.forEach(f=>{const k=f.topic||'بدون موضوع';(tp[k]=tp[k]||{n:0,od:0,ext:0,cl:0,fb:0});tp[k].fb=(tp[k].fb||0)+1}));
+  const ent=Object.entries(tp).sort((a,b)=>b[1].n-a[1].n),mx=Math.max(1,...ent.map(e=>e[1].n));
+  $('st-topic').innerHTML=ent.map(([k,v])=>'<div style="font-size:13px"><b>'+esc(k)+'</b> — '+fa(v.n)+' تسک'+(v.od?' ، <span class="red">'+fa(v.od)+' عقب‌افتاده</span>':'')+(v.ext?' ، '+fa(v.ext)+' تمدید':'')+(v.fb?' ، '+fa(v.fb)+' بازخورد':'')+bar(v.n,mx)+'</div>').join('')||'<small>داده‌ای نیست</small>';
+  const wc={},wd={};
+  T.forEach(t=>{if(t.created)wc[wk(t.created)]=(wc[wk(t.created)]||0)+1;if(t.closed)wd[wk(t.closed)]=(wd[wk(t.closed)]||0)+1});
+  const ws=[];let d=new Date();for(let i=7;i>=0;i--){ws.push(wk(new Date(Date.now()-i*7*864e5).toISOString().slice(0,10)))}
+  const mw=Math.max(1,...ws.map(w=>Math.max(wc[w]||0,wd[w]||0)));
+  $('st-trend').innerHTML=ws.map(w=>'<div style="font-size:12px">هفته‌ی '+fd(w)+' — ایجاد '+fa(wc[w]||0)+' / بسته '+fa(wd[w]||0)+bar(wc[w]||0,mw)+bar(wd[w]||0,mw,'#16a34a')+'</div>').join('');
+}
+async function callGroq(sys,user,max){
+  const key=localStorage.getItem('key');if(!key){setKey();throw new Error('ابتدا کلید را وارد کنید')}
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+key},body:JSON.stringify({model:'openai/gpt-oss-120b',max_tokens:max||2000,messages:[{role:'system',content:sys},{role:'user',content:user}]})});
+  const j=await r.json();if(j.error)throw new Error(j.error.message);return j.choices[0].message.content;
+}
+async function classifyAI(){
+  const items=[];
+  S.tasks.filter(t=>!t.topic).forEach(t=>items.push('t'+t.id+': '+t.title+(t.log.length?' | '+t.log.map(e=>e.note).join('؛ ').slice(0,200):'')));
+  Object.values(S.fb).forEach(l=>l.filter(f=>!f.topic).forEach(f=>items.push('f'+f.id+': '+f.text.slice(0,200))));
+  if(!items.length){$('aisum').textContent='همه‌ی موارد قبلاً دسته‌بندی شده‌اند.';return}
+  $('aisum').textContent='⏳ در حال دسته‌بندی '+fa(items.length)+' مورد...';
+  try{
+    const known=[...new Set([...S.tasks.map(t=>t.topic),...Object.values(S.fb).flat().map(f=>f.topic)].filter(Boolean))];
+    const c=await callGroq('تو تحلیلگر موضوعی هستی. برای هر مورد یک موضوع کوتاه فارسی (۱ تا ۳ کلمه) بده. حداکثر ۸ موضوع کلی در کل داشته باش و تا حد امکان از موضوع‌های موجود استفاده کن: '+(known.join('، ')||'(هنوز نیست)')+'. فقط JSON خالص: {"topics":{"t1":"موضوع","f2":"موضوع"}}',items.join('\n'),3000);
+    const tp=JSON.parse(c.match(/\{[\s\S]*\}/)[0]).topics||{};
+    let n=0;
+    S.tasks.forEach(t=>{if(tp['t'+t.id]){t.topic=String(tp['t'+t.id]);n++}});
+    Object.values(S.fb).forEach(l=>l.forEach(f=>{if(tp['f'+f.id]){f.topic=String(tp['f'+f.id]);n++}}));
+    localStorage.setItem('mgr',JSON.stringify(S));renderStats();$('aisum').textContent='✅ '+fa(n)+' مورد دسته‌بندی شد.';
+  }catch(e){$('aisum').textContent='خطا: '+e.message}
+}
+async function reportAI(){
+  $('aisum').textContent='⏳ ...';
+  try{
+    const rows=S.managers.map(mstats).map(r=>r.m+': باز '+r.open+'، بسته '+r.closed+'، عقب‌افتاده '+r.od+'، بحرانی '+r.crit+'، تمدید '+r.ext+'، به‌موقع '+(r.ontime==null?'-':r.ontime+'٪')+'، بازخورد مثبت/اصلاحی '+r.fbp+'/'+r.fbc).join('\n');
+    const tk=S.tasks.map(t=>t.manager+' | '+(t.topic||'-')+' | '+t.title+' | '+t.status+(t.due?' | مهلت '+fd(t.due):'')+(t.crit?' | بحرانی':'')+(t.pct!=null?' | '+t.pct+'٪':'')+(t.log.length?' | آخرین: '+t.log[t.log.length-1].note.slice(0,120):'')).join('\n');
+    const fb=Object.entries(S.fb).flatMap(([m,l])=>l.map(f=>m+' | '+f.type+' | '+(f.topic||'-')+' | '+f.text.slice(0,150))).join('\n');
+    const c=await callGroq('تو مشاور مدیریتی هستی. امروز '+fd(today())+' است. براساس داده‌ها گزارش کوتاه و کاربردی فارسی بنویس با این بخش‌ها: ۱) خلاصه‌ی وضعیت هر مدیر (۱ تا ۲ جمله) ۲) موضوع‌هایی که بیشتر عقب می‌افتند یا تمدید می‌شوند ۳) الگوهای تکرارشونده ۴) پیشنهاد اقدام برای جلسه‌ی بعد. فقط براساس داده بنویس و حدس نزن. متن ساده بدون markdown.','آمار:\n'+rows+'\n\nتسک‌ها:\n'+tk+'\n\nبازخوردها:\n'+(fb||'-'),3000);
+    $('aisum').textContent=c;
+  }catch(e){$('aisum').textContent='خطا: '+e.message}
+}
+
 /* ---------- Render ---------- */
 const tlHTML=t=>t.log.length?'<div class="tl">'+t.log.map(e=>'<div><small>'+fd(e.date)+'</small> '+esc(e.note)+(e.pct!=null?' <b>٪'+fa(e.pct)+'</b>':'')+(e.due?' <span class="'+(e.crit?'red':'orange')+'">('+esc(e.due)+')</span>':'')+'</div>').join('')+'</div>':'';
 const badge=t=>t.crit?'<span class="crit">🔴 بحرانی — بعد از سررسید تمدید شد'+(t.ext>1?' ('+fa(t.ext)+' بار)':'')+'</span>':'';
@@ -439,6 +526,8 @@ function render(){
   if(!S.managers.includes(FM))FM=S.managers[0]||'';
   $('v-tasks').style.display=V==='tasks'?'':'none';
   $('v-fb').style.display=V==='fb'?'':'none';
+  $('v-st').style.display=V==='st'?'':'none';$('nav-st').className=V==='st'?'':'x';
+  if(V==='st')renderStats();
   $('nav-tasks').className=V==='tasks'?'':'x';$('nav-fb').className=V==='fb'?'':'x';
   /* tasks */
   $('m').innerHTML=S.managers.map(m=>'<option>'+esc(m)+'</option>').join('');
@@ -452,6 +541,7 @@ function render(){
    +'<div class="card stat">بسته‌شده<b class="green">'+(vis.length-open.length)+'</b></div>';
   $('managers').innerHTML=S.managers.filter(m=>!F||m===F).map(m=>{
     const ts=S.tasks.filter(t=>t.manager===m&&t.status==='open').sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
+    const all=S.tasks.filter(t=>t.manager===m),pct=all.length?Math.round(100*(all.length-ts.length)/all.length):0;
     return '<div class="card"><h2>'+esc(m)+' — '+ts.length+' باز / <span class="red">'+ts.filter(overdue).length+' عقب‌افتاده</span>'+(ts.some(t=>t.crit)?' / <span class="crit">'+ts.filter(t=>t.crit).length+' بحرانی</span>':'')+'</h2>'
       +(ts.map(taskHTML).join('')||'<small>تسک بازی نیست</small>')+'</div>';
   }).join('');
@@ -464,7 +554,7 @@ function render(){
   const fl=(S.fb[FM]||[]).slice().reverse();
   $('fblist').innerHTML=fl.map(f=>'<div class="task fb-'+f.type+'"><small>'+fd(f.date)+' — '+esc(f.type)+'</small>'+esc(f.text)+' <button class="x" onclick="delFB('+f.id+')">حذف</button></div>').join('')||'<small>هنوز بازخوردی برای '+esc(FM)+' ثبت نشده</small>';
 }
-window.addEventListener('hashchange',()=>{V=location.hash==='#fb'?'fb':'tasks';render()});
+window.addEventListener('hashchange',()=>{V=hv();render()});
 if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
 render();setInterval(render,60000);
 </script>
